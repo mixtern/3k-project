@@ -1,0 +1,41 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+html,body{
+  height: 100%;
+  width: 100%;
+}
+div{
+  display: inline-block;
+}
+div.container{
+  margin-left: calc(50% - 400px);
+  height: 750px;
+  width:800px;
+  border:6px solid black;
+}
+img#clear{
+  display: none;
+}
+div#kkk{
+  width: 600px;
+  height: 600px;
+}
+div#kkk >  canvas{
+  width: 600px;
+  height: 600px;
+}
+canvas#temp{
+  display: none;
+}
+
+div#settings{
+  width:186px;
+  height:746px;
+  float: right;
+  border-left:4px solid black;
+}
+input[type="number"], input[type="color"] {
+  width:30px;
+}

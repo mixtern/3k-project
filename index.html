@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Кварто-Квинтовый круг</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="main.js"></script>
+</head>
+<body>
+  <div class="container">
+    <img src="img/3k.jpg" alt="" id="clear">
+    <div id="kkk">
+      <canvas id="main" height="600" width="600"></canvas>
+      <canvas id="temp" height="600" width="600"></canvas>
+    </div>
+    <div id="settings">
+      Тональности: <br/>
+      <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
+      Основная
+      <input type="number" value="0" min="-6" max="6" id="tonic" onchange="redraw()">
+      <input type="color" id="tonic-color" value="#FFCC00" onchange="redraw()">
+      <br/>
+      <input type="checkbox" id="alt-enabled" onchange="redraw()">
+      Дополн.
+      <input type="number" value="3" min="-6" max="6" id="alt" onchange="redraw()">
+      <input type="color" id="alt-color" value="#0022DD" onchange="redraw()">
+    </div>
+    <button onclick="clrscr();return false;"></button>
+  </div>
+</body>
+</html>

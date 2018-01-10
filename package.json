@@ -1,0 +1,9 @@
+{
+  "main": "index.html",
+  "name": "кварто-квинтовый круг",
+  "window":{
+    "width":1024,
+    "height":768,
+    "resizable":false
+  }
+}
