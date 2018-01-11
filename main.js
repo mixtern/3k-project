@@ -125,7 +125,7 @@ window.addEventListener('load', function () {
             setTonic(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
             clearTimeout(pressTimer);
             pressTimer = null;
-        }, 100);
+        }, 300);
         return false;
     },
     false);
