@@ -13,14 +13,55 @@
       <canvas id="temp" height="600" width="600"></canvas>
     </div>
     <div id="settings">
-      Тональности: <br/>
-      <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
-      Основная
-      <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
-      <br/>
-      <input type="checkbox" id="alt-enabled" onchange="redraw()">
-      Дополнитеьная
-      <input type="color" id="alt-color" value="#0022DD" onchange="redraw()">
+
+        <!-- MODE SELECTORS -->
+        <label class="switch">
+            <input type="checkbox" id="mode-basetone" onchange="changemode(this)">
+            <span class="slider">ОСН ТОНАЛЬНОСТЬ</span>          
+        </label>
+
+        <!-- mode-realted controls -->
+        <div class="mode-dependent" id="mode-basetone-controls">
+            <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
+            Показывать?<br/>
+            Цвет
+            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
+        </div>
+
+        <label class="switch">
+            <input type="checkbox" id="mode-alttone" onchange="changemode(this)">
+            <span class="slider">ДОП ТОНАЛЬНОСТЬ</span>
+        </label>
+
+        <!-- mode-realted controls -->
+        <div class="mode-dependent" id="mode-alttone-controls" style="display:none">
+            <input type="checkbox" id="alt-enabled" onchange="redraw()">
+            Показывать?<br />
+            Цвет
+            <input type="color" id="alt-color" value="#0022DD" onchange="redraw()">
+        </div>
+
+        <label class="switch">
+            <input type="checkbox" id="mode-chords" onchange="changemode(this)">
+            <span class="slider">АККОРДЫ</span>
+        </label>
+
+        <!-- mode-realted controls -->
+        <div class="mode-dependent" id="mode-chords-controls" style="display:none">
+            Всякие стили аккордов
+        </div>
+
+        <label class="switch">
+            <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
+            <span class="slider">СТРЕЛКИ</span>
+        </label>
+
+        <!-- mode-realted controls -->
+        <div class="mode-dependent" id="mode-arrows-controls" style="display:none">
+            Все что нужно для работы со стрелками
+        </div>
+
+
     </div>
   </div>
 </body>

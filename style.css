@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
 html,body{
   height: 100%;
@@ -39,3 +40,69 @@ div#settings{
 input[type="number"], input[type="color"] {
   width:30px;
 }
+
+/* MODE SWITCHES RELATED */
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 34px;
+}
+
+.mode-dependent{
+    display:none;
+    padding:5px;
+    background:#dce9f3;
+}
+
+.switch input {display:none;}
+
+.slider {
+  font-size:90%;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-left: 40px;
+  padding-top: 8px;
+  background-color: #ccc;  
+  
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+  color:#666;
+  -webkit-transform: translateX(200px);
+  -ms-transform: translateX(200px);
+  transform: translateX(200px);
+  opacity:0;
+}
+
+
+input:checked + .slider {
+  color:white;
+  background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(0px);
+  -ms-transform: translateX(0px);
+  transform: translateX(0px);
+  opacity:1;
+  
+}
+
+
