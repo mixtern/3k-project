@@ -109,14 +109,27 @@ window.addEventListener('load', function () {
     temp = document.getElementById('temp');
     temp.ctx = temp.getContext('2d');
 
-    main.addEventListener('click',
+    main.addEventListener('mouseup',
         function (event) {
-            if (event.ctrlKey)
-                setTonic(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main)
-            else
-                toggleSectorHighlight(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main)
-        }, false);
+            if (pressTimer != null)
+                toggleSectorHighlight(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
 
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        },
+        false);
+
+    main.addEventListener('mousedown',
+    function (event) {
+        pressTimer = window.setTimeout(function () {
+            setTonic(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
+            clearTimeout(pressTimer);
+            pressTimer = null;
+        }, 100);
+        return false;
+    },
+    false);
+    
     clear = document.getElementById("clear");
     redraw();
 });
