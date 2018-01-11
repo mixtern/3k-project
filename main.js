@@ -1,5 +1,4 @@
-﻿var main = {}, temp = {};
-
+﻿var main = {}
 /*
  Co5 chord definitions 
 */
@@ -7,18 +6,18 @@
 var ChordHighlightType =  Object.freeze({
     None : 0,
     Sector: 1,
-    Fog: 2,
+    Fog: 2
 });
 
 var ChordAlterationType = Object.freeze({
-    None: null,
+    None: 0,
     Sharp: 1,
-    Flat: 2,
+    Flat: 2
 });
 
 var circleParameters = {
-    majorCicrcleThicknessPercents : 0.25,   
-    minorCicrcleThicknessPercents  : 0.25,  
+    majorCircleThicknessPercents : 0.25,
+    minorCircleThicknessPercents  : 0.25,
 
     inactiveColor : "lightgray",
     activeColor: "black",
@@ -27,9 +26,10 @@ var circleParameters = {
     sectorCount: 12,
     sectorRadians: Math.PI * 2 / 12,
 
-    selectedTonic: null,
+    selectedTonic: 0,
     tonicColor: "red",
-    selectedAlt: null
+    altColor:"yellow",
+    selectedAlt: 3
 };
 
 /**
@@ -38,13 +38,13 @@ var circleParameters = {
  * @param {number} co5Position - chord index on circle of fifths, starting from 0 to 11, clockwise
  * @param {boolean} isMinor - whether chord is minor. Affects positioning
  * @param {string} basename - base chord name.
- * @param {boolean} baseModeration - is base chord sharp or flat (#/b)
- * @param {string} altname - alternate chord name. Optional
- * @param {boolean} altAlteration - is alternate chord sharp or flat (#/b)
+ * @param {number} baseModeration - is base chord sharp or flat (#/b)
+ * @param {string} altName - alternate chord name. Optional
+ * @param {number} altAlteration - is alternate chord sharp or flat (#/b)
  * 
  * @return {Object<>} Chord definition object
  */
-function createChord(co5Position, isMinor, basename, baseModeration, altname, altAlteration) {
+function createChord(co5Position, isMinor, basename, baseModeration, altName = "", altAlteration = 0) {
     return {
         minor: isMinor,
         position: co5Position,
@@ -52,9 +52,9 @@ function createChord(co5Position, isMinor, basename, baseModeration, altname, al
         base: basename,
         baseMod: baseModeration,
 
-        hasAlternateName: typeof altname !== 'undefined',
-        altname: altname,
-        altMod: typeof altname !== 'undefined' ? altAlteration : ChordAlterationType.None,
+        hasAlternateName: typeof altName !== 'undefined',
+        altName: altName,
+        altMod: !!altName.length? altAlteration : ChordAlterationType.None,
 
         active: false,
         highlight: ChordHighlightType.None,
@@ -106,8 +106,6 @@ var chordDefinitions = [
 window.addEventListener('load', function () {
     main = document.getElementById('main');
     main.ctx = main.getContext('2d');
-    temp = document.getElementById('temp');
-    temp.ctx = temp.getContext('2d');
 
     main.addEventListener('mouseup',
         function (event) {
@@ -129,8 +127,6 @@ window.addEventListener('load', function () {
         return false;
     },
     false);
-    
-    clear = document.getElementById("clear");
     redraw();
 });
 
@@ -139,37 +135,40 @@ function redraw() {
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
 }
 function tonic() {
-
-    var tonic = parseInt(document.getElementById("tonic").value),
-    tonicColor = document.getElementById("tonic-color").value,
+    var tonicColor = document.getElementById("tonic-color").value,
     tEnabled = document.getElementById("tonic-enabled").checked;
 
 
-    var alt = parseInt(document.getElementById("alt").value),
-    altColor = document.getElementById("alt-color").value,
+    var altColor = document.getElementById("alt-color").value,
     altEnabled = document.getElementById("alt-enabled").checked;
 
     if (altEnabled) {
         for (let chord of chordDefinitions)
-            chord.active|= chord.inTonic(alt);
+            chord.active = chord.inTonic(circleParameters.selectedAlt);
     }
 
     circleParameters.tonicColor = tonicColor;
-    circleParameters.selectedTonic = tEnabled ? tonic : null;
-    circleParameters.selectedAlt = altEnabled ? alt : null;
+    circleParameters.altColor = altColor;
+    circleParameters.selectedTonic = tEnabled ? circleParameters.selectedTonic : null;
+    circleParameters.selectedAlt = altEnabled ? circleParameters.selectedAlt : null;
 }
 
-function setTonic(x, y, cavnas) {
-    var xc = cavnas.clientWidth / 2;
-    var yc = cavnas.clientHeight / 2;
-    var angle = Math.atan2(y - yc, x - xc);
-
-    var tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
-    document.getElementById("tonic").value = tonic;
+function setTonic(x, y, canvas) {
+    var xc = canvas.clientWidth / 2;
+    var yc = canvas.clientHeight / 2;
+    var angle = Math.atan2(y - yc, x - xc),
+        tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
+    if(circleParameters.selectedTonic === tonic){
+        circleParameters.altTonic = tonic;
+    }
+    else
+    {
+        circleParameters.selectedTonic = tonic
+    }
     redraw();
 }
 
-function toggleSectorHighlight(x, y, cavnas, ctrl) {
+function toggleSectorHighlight(x, y, cavnas) {
 
     var xc = cavnas.clientWidth / 2;
     var yc = cavnas.clientHeight / 2;
@@ -223,7 +222,7 @@ function drawCo5(ctx, witdh, height) {
 
     var r = Math.min(xc, yc);
 
-    var rstart = r * (1 - circleParameters.majorCicrcleThicknessPercents - circleParameters.minorCicrcleThicknessPercents);
+    var rstart = r * (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents);
 
     ctx.clearRect(0, 0, witdh, height);
 
@@ -236,7 +235,7 @@ function drawCo5(ctx, witdh, height) {
 
     if (circleParameters.selectedAlt!=null) {
         for (let chord of chordDefinitions)
-            chord.active|= chord.inTonic(circleParameters.selectedAlt);
+            chord.active = chord.inTonic(circleParameters.selectedAlt);
     }
 
     //Draw outer & inner circles
@@ -247,7 +246,7 @@ function drawCo5(ctx, witdh, height) {
     ctx.arc(xc, yc, r, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(xc, yc, r * (1- circleParameters.majorCicrcleThicknessPercents), 0, Math.PI * 2);
+    ctx.arc(xc, yc, r * (1- circleParameters.majorCircleThicknessPercents), 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(xc, yc, rstart, 0, Math.PI * 2);
@@ -270,12 +269,27 @@ function drawCo5(ctx, witdh, height) {
     for (let chord of chordDefinitions)
         drawChord(chord, ctx, xc, yc, r);
 
-    //Draw tonic selection
+    //Draw tonic selections
 
     var rmin = r *
-    (1 - circleParameters.majorCicrcleThicknessPercents - circleParameters.minorCicrcleThicknessPercents
-    );
+        (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents
+        );
+    //Alternative tonic
+    if (circleParameters.altTonic != null) {
 
+        var angles = _getTonicAngles(circleParameters.altTonic);
+
+        ctx.strokeStyle = circleParameters.altColor;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        ctx.moveTo(xc + rmin * Math.cos(angles.amin), yc + rmin * Math.sin(angles.amin));
+        ctx.lineTo(xc + r * Math.cos(angles.amin), yc + r * Math.sin(angles.amin));
+        ctx.arc(xc, yc, r, angles.amin, angles.amax);
+        ctx.lineTo(xc + rmin * Math.cos(angles.amax), yc + rmin * Math.sin(angles.amax));
+        ctx.stroke();
+    }
+    //Main tonic
     if (circleParameters.selectedTonic != null) {
 
         var angles = _getTonicAngles(circleParameters.selectedTonic);
@@ -321,8 +335,8 @@ function getChordBoundsFromDefinition(chord) {
 
     return {
         angle: angle2pi,
-        offmax: chord.minor ? 1 - circleParameters.majorCicrcleThicknessPercents : 1,
-        offmin: chord.minor ? 1 - circleParameters.majorCicrcleThicknessPercents - circleParameters.minorCicrcleThicknessPercents : 1 - circleParameters.majorCicrcleThicknessPercents,
+        offmax: chord.minor ? 1 - circleParameters.majorCircleThicknessPercents : 1,
+        offmin: chord.minor ? 1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents : 1 - circleParameters.majorCircleThicknessPercents,
     };
 }
 
@@ -387,7 +401,7 @@ function drawChord(chord,ctx,xc,yc,r) {
         combinedText += "m";
 
     if (chord.hasAlternateName)
-        combinedText += "  " + chord.altname + _getChordAlterationText(chord.altMod);
+        combinedText += "  " + chord.altName + _getChordAlterationText(chord.altMod);
 
     var dim = ctx.measureText(combinedText);
     var lineHeight = ctx.measureText('M').width; //hack
