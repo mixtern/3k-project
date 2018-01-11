@@ -130,6 +130,34 @@ window.addEventListener('load', function () {
     redraw();
 });
 
+//*****//
+//MODE SELECTION RELATED
+//*****//
+
+function changemode(source)
+{
+    if(!source.checked)
+        return;
+
+    var checkboxes = document.getElementsByTagName('input');
+
+    for(var i=0;i!=checkboxes.length;++i)
+    {
+        if(checkboxes[i].id.indexOf("mode")==-1)
+            continue;
+
+        if(checkboxes[i].id != source.id)
+            checkboxes[i].checked = false;
+
+        var dep = document.getElementById(checkboxes[i].id+"-controls");
+
+        if(dep!=null)
+            dep.style.display=checkboxes[i].checked?"block":"none";
+    }
+
+    
+}
+
 function redraw() {
     tonic();
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
