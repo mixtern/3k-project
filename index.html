@@ -16,14 +16,16 @@
 
         <!-- MODE SELECTORS -->
         <label class="switch">
-            <input type="checkbox" id="mode-basetone" onchange="changemode(this)">
+            <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
             <span class="slider">ОСН ТОНАЛЬНОСТЬ</span>          
         </label>
 
-        <!-- mode-realted controls -->
-        <div class="mode-dependent" id="mode-basetone-controls">
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-basetone-controls" style="display:block">
             <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
-            Показывать?<br/>
+            Показывать сектор?<br/>
+            <input type="checkbox" id="tonic-degree-enabled" checked onchange="redraw()">
+            Показывать ступени?<br />
             Цвет
             <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
         </div>
@@ -33,12 +35,12 @@
             <span class="slider">ДОП ТОНАЛЬНОСТЬ</span>
         </label>
 
-        <!-- mode-realted controls -->
+        <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-alttone-controls" style="display:none">
             <input type="checkbox" id="alt-enabled" onchange="redraw()">
-            Показывать?<br />
+            Показывать сектор?<br />
             Цвет
-            <input type="color" id="alt-color" value="#0022DD" onchange="redraw()">
+            <input type="color" id="alt-color" value="#FF6F00" onchange="redraw()">
         </div>
 
         <label class="switch">
@@ -46,9 +48,28 @@
             <span class="slider">АККОРДЫ</span>
         </label>
 
-        <!-- mode-realted controls -->
-        <div class="mode-dependent" id="mode-chords-controls" style="display:none">
-            Всякие стили аккордов
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-chords-controls" style="display: none">
+            Цвет
+            <input type="color" id="chord-color" value="#FFA726" onchange="redraw()"><br/>
+            Тип подсветки аккорда
+            <label class="switch">
+                <input type="checkbox" id="chordmode-sector" checked onchange="setChordmode(this)">
+                <span class="slider">Сектор</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="chordmode-fog" onchange="setChordmode(this)">
+                <span class="slider">Пыльца</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="chordmode-circle" onchange="setChordmode(this)">
+                <span class="slider">Кружок</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="chordmode-circle-double" onchange="setChordmode(this)">
+                <span class="slider">Двойной кружок</span>
+            </label>
+
         </div>
 
         <label class="switch">
@@ -56,7 +77,7 @@
             <span class="slider">СТРЕЛКИ</span>
         </label>
 
-        <!-- mode-realted controls -->
+        <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-arrows-controls" style="display:none">
             Все что нужно для работы со стрелками
         </div>

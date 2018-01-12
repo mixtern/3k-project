@@ -6,7 +6,9 @@
 var ChordHighlightType =  Object.freeze({
     None : 0,
     Sector: 1,
-    Fog: 2
+    Fog: 2,
+    Circle: 3,
+    DoubleCircle: 4,
 });
 
 var ChordAlterationType = Object.freeze({
@@ -15,11 +17,12 @@ var ChordAlterationType = Object.freeze({
     Flat: 2
 });
 
+
 var circleParameters = {
     majorCircleThicknessPercents : 0.25,
     minorCircleThicknessPercents  : 0.25,
 
-    inactiveColor : "lightgray",
+    inactiveColor : "#aaaaaa",
     activeColor: "black",
     highlightColor: "orange",
 
@@ -27,9 +30,10 @@ var circleParameters = {
     sectorRadians: Math.PI * 2 / 12,
 
     selectedTonic: 0,
+    tonicDegreeEnabled: true,
     tonicColor: "red",
     altColor:"yellow",
-    selectedAlt: 3
+    altTonic: 3
 };
 
 /**
@@ -52,7 +56,7 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
         base: basename,
         baseMod: baseModeration,
 
-        hasAlternateName: typeof altName !== 'undefined',
+        hasAlternateName: altName !== "",
         altName: altName,
         altMod: !!altName.length? altAlteration : ChordAlterationType.None,
 
@@ -60,12 +64,43 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
         highlight: ChordHighlightType.None,
         highlightColor: circleParameters.highlightColor,
 
-        inTonic: function (tonic) {
-            var tonic12 = (tonic + 6) % 12;
+        //Returns true if this chord is in tonality
+        inTonic: function (tonality) {
+            var tonal12 = (tonality + 6) % 12;
             var pos12 = (this.position+6) % 12;
 
-            return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) < 2;
-        }
+            return Math.min(Math.abs(tonal12 - pos12), 12 - Math.abs(tonal12 - pos12)) < 2;
+        },
+
+        //Returns true if this chord is tonic chord
+        isTonicChord: function (tonic) {
+        var tonic12 = (tonic + 6) % 12;
+        var pos12 = (this.position+6) % 12;
+
+        return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) == 0 && !this.minor;
+        },
+
+        //Returns chord degree in given tonality
+        getDegree: function (tonality) {
+            var tonic12 = (tonality + 6) % 12;
+            var pos12 = (this.position+6) % 12;
+
+            if (!this.inTonic(tonality))
+                return "";
+
+            var mod = (tonic12 - pos12 + 12) % 12;
+
+            switch (mod) {
+                case 1:
+                    return this.minor ? "ii" : "IV";
+                case 0:
+                    return this.minor ? "vi" : "I";                
+                case 11:
+                    return this.minor ? "iii" : "V";                
+                default:
+                    return mod;
+            }            
+        },
     }
 }
 
@@ -103,96 +138,129 @@ var chordDefinitions = [
 ];
 
 
-window.addEventListener('load', function () {
+window.addEventListener('load', function () 
+{
     main = document.getElementById('main');
     main.ctx = main.getContext('2d');
-
-    main.addEventListener('mouseup',
-        function (event) {
-            if (pressTimer != null)
-                toggleSectorHighlight(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
-
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        },
-        false);
-
+    
     main.addEventListener('mousedown',
     function (event) {
-        pressTimer = window.setTimeout(function () {
-            setTonic(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        }, 300);
+        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
         return false;
-    },
-    false);
+    },false);
+
     redraw();
 });
 
 //*****//
-//MODE SELECTION RELATED
+//MODE SELECTION - RELATED
 //*****//
 
-function changemode(source)
-{
-    if(!source.checked)
+//
+
+var activeModeFunction = setTonic;
+var activeChordHighlight = ChordHighlightType.Sector;
+var activeChordHighlightId = 'chordmode-sector';
+
+var availableModeFunctions = {
+    'mode-basetone':setTonic,
+    'mode-alttone':setAltTonic,
+    'mode-chords':toggleSectorHighlight,
+    'mode-arrows':setTonic,
+};
+
+var availableChordHighlights = {
+    'chordmode-sector': ChordHighlightType.Sector,
+    'chordmode-fog': ChordHighlightType.Fog,
+    'chordmode-circle': ChordHighlightType.Circle,
+    'chordmode-circle-double': ChordHighlightType.DoubleCircle,
+};
+
+function _restrictToOneCheckbox(needle, source, iterator) {
+
+    if (!source.checked)
         return;
+
+    //Deselect other checkboxes
 
     var checkboxes = document.getElementsByTagName('input');
 
-    for(var i=0;i!=checkboxes.length;++i)
-    {
-        if(checkboxes[i].id.indexOf("mode")==-1)
+    for (var i = 0; i != checkboxes.length; ++i) {
+        
+        if (checkboxes[i].id.indexOf(needle) == -1)
             continue;
 
-        if(checkboxes[i].id != source.id)
+        if (checkboxes[i].id != source.id)
             checkboxes[i].checked = false;
 
-        var dep = document.getElementById(checkboxes[i].id+"-controls");
-
-        if(dep!=null)
-            dep.style.display=checkboxes[i].checked?"block":"none";
+        iterator(checkboxes[i]);
     }
-
-    
 }
 
-function redraw() {
-    tonic();
-    drawCo5(main.ctx, main.clientWidth, main.clientHeight);
+function changemode(source) {
+
+    _restrictToOneCheckbox("mode",source,function(cb) {
+        
+        // Display controls for selected mode
+        
+        var dependentBlock = document.getElementById(cb.id+"-controls");
+
+        if (dependentBlock != null) {
+            dependentBlock.style.display=cb.checked?"block":"none";
+
+            if (cb.checked) {
+                window.setTimeout(function() {
+                        restoreModeBlockState(cb.id);
+                        return false;
+                    },100); //hack
+            }
+                
+        }
+
+        activeModeFunction = availableModeFunctions[source.id];
+    });
 }
-function tonic() {
-    var tonicColor = document.getElementById("tonic-color").value,
-    tEnabled = document.getElementById("tonic-enabled").checked;
 
-
-    var altColor = document.getElementById("alt-color").value,
-    altEnabled = document.getElementById("alt-enabled").checked;
-
-    if (altEnabled) {
-        for (let chord of chordDefinitions)
-            chord.active = chord.inTonic(circleParameters.selectedAlt);
-    }
-
-    circleParameters.tonicColor = tonicColor;
-    circleParameters.altColor = altColor;
-    circleParameters.selectedTonic = tEnabled ? circleParameters.selectedTonic : null;
-    circleParameters.selectedAlt = altEnabled ? circleParameters.selectedAlt : null;
+function restoreModeBlockState(id) {
+    document.getElementById(activeChordHighlightId).checked = true;
 }
+
+function setChordmode(source) {
+    _restrictToOneCheckbox("chordmode",source,function(cb) {
+        
+        // Set chord mode
+        if (cb.checked) {
+            activeChordHighlight = availableChordHighlights[cb.id];
+            activeChordHighlightId = cb.id;
+        }
+    });
+}
+
+/////////////////////////////////////////////////////////////////
 
 function setTonic(x, y, canvas) {
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
     var angle = Math.atan2(y - yc, x - xc),
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
-    if(circleParameters.selectedTonic === tonic){
-        circleParameters.altTonic = tonic;
-    }
-    else
-    {
-        circleParameters.selectedTonic = tonic
-    }
+
+    circleParameters.selectedTonic = tonic;
+
+    document.getElementById("tonic-enabled").checked = true;
+
+    redraw();
+}
+
+function setAltTonic(x, y, canvas) {
+    var xc = canvas.clientWidth / 2;
+    var yc = canvas.clientHeight / 2;
+    var angle = Math.atan2(y - yc, x - xc),
+        tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
+
+    circleParameters.altTonic = tonic;
+
+    document.getElementById("alt-enabled").checked = true;
+
     redraw();
 }
 
@@ -200,6 +268,8 @@ function toggleSectorHighlight(x, y, cavnas) {
 
     var xc = cavnas.clientWidth / 2;
     var yc = cavnas.clientHeight / 2;
+
+    var highlightColor = document.getElementById("chord-color").value;
 
     x -= xc;
     y -= yc;
@@ -230,11 +300,31 @@ function toggleSectorHighlight(x, y, cavnas) {
     //Cycle highlihgt types
 
     if (hit != null) {
-
-        hit.highlight = ++hit.highlight % 3;
+        hit.highlight = hit.highlight == activeChordHighlight ? null : activeChordHighlight;
+        hit.highlightColor = highlightColor;
     }
     
     redraw();
+}
+
+    /////////////////////////////////////////////////////////////////
+
+function redraw() {
+    tonic();
+    drawCo5(main.ctx, main.clientWidth, main.clientHeight);
+}
+function tonic() {
+    var tonicColor = document.getElementById("tonic-color").value,
+    tEnabled = document.getElementById("tonic-enabled").checked;
+
+    var altColor = document.getElementById("alt-color").value,
+    altEnabled = document.getElementById("alt-enabled").checked;
+
+    circleParameters.tonicColor = tonicColor;
+    circleParameters.altColor = altColor;
+    circleParameters.tonicDegreeEnabled = document.getElementById("tonic-degree-enabled").checked;
+    circleParameters.selectedTonic = tEnabled ? circleParameters.selectedTonic : null;
+    circleParameters.altTonic = altEnabled ? circleParameters.altTonic : null;
 }
 
 //
@@ -256,14 +346,13 @@ function drawCo5(ctx, witdh, height) {
 
     //Select chords in tonic/alt
 
-    if (circleParameters.selectedTonic!=null) {
-        for (let chord of chordDefinitions)
-            chord.active = chord.inTonic(circleParameters.selectedTonic);
+    for (let chord of chordDefinitions) {
+        chord.active = circleParameters.selectedTonic != null ? chord.inTonic(circleParameters.selectedTonic) : false;
     }
 
-    if (circleParameters.selectedAlt!=null) {
+    if (circleParameters.altTonic!=null) {
         for (let chord of chordDefinitions)
-            chord.active = chord.inTonic(circleParameters.selectedAlt);
+            chord.active|= chord.inTonic(circleParameters.altTonic);
     }
 
     //Draw outer & inner circles
@@ -368,6 +457,15 @@ function getChordBoundsFromDefinition(chord) {
     };
 }
 
+/**
+ * Draws a chord on QQ circle
+ * @param {Object<>} chord structure, created with {@link #createChord(int, int) createChord}
+ * @param {number} ctx - canvas context to draw at
+ * @param {number} xc - QQ circle center X
+ * @param {number} yc - QQ circle center Y
+ * @param {number} r - QQ circle radius
+ * @returns {} 
+ */
 function drawChord(chord,ctx,xc,yc,r) {
 
     var bounds = getChordBoundsFromDefinition(chord);
@@ -379,11 +477,12 @@ function drawChord(chord,ctx,xc,yc,r) {
     var x = xc + rmid * Math.cos(bounds.angle);
     var y = yc + rmid * Math.sin(bounds.angle);
 
+    var origAlpha = ctx.globalAlpha;
+
     //Draw background highlight
 
     if (chord.highlight == ChordHighlightType.Sector || chord.highlight == ChordHighlightType.Fog) {
-
-        var a = ctx.globalAlpha;
+        
         ctx.globalAlpha = 0.4;
 
         if (chord.highlight == ChordHighlightType.Fog) {
@@ -397,7 +496,6 @@ function drawChord(chord,ctx,xc,yc,r) {
         }
         else
             ctx.fillStyle = chord.highlightColor;
-
         
         ctx.beginPath();
 
@@ -414,12 +512,77 @@ function drawChord(chord,ctx,xc,yc,r) {
             bounds.angle - circleParameters.sectorRadians / 2,true);
 
         ctx.fill();
-        ctx.globalAlpha = a;
-    }
         
+    }
+
+    if (chord.highlight == ChordHighlightType.Circle || chord.highlight == ChordHighlightType.DoubleCircle) {
+        
+        ctx.fillStyle = chord.highlightColor;
+        ctx.strokeStyle = chord.highlightColor;
+        ctx.lineWidth = 2;
+
+        var circlerad = r * 0.1;
+        var linecount = chord.highlight == ChordHighlightType.DoubleCircle ? 2 : 1;
+
+        ctx.globalAlpha = 0.05;
+
+        ctx.beginPath();
+
+        ctx.arc(x,y, circlerad,0,Math.PI*2);
+
+        ctx.fill();
+
+        ctx.globalAlpha = 0.4;
+
+        for (var i = 0; i != linecount; ++i) {
+
+            var offset = i * 6;
+
+            ctx.beginPath();
+            ctx.arc(x,y, circlerad - offset,0,Math.PI*2);
+            ctx.stroke();
+        }        
+    }
+
+    //Show chord degree
+    if (circleParameters.tonicDegreeEnabled) {
+
+        ctx.globalAlpha = 0.4;
+
+        ctx.font = "20px Arial";
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(circleParameters.sectorRadians / 2.7);
+        ctx.translate(xc - x, yc - y);
+        ctx.rotate(-circleParameters.sectorRadians / 2.7);
+        ctx.translate(-xc, -yc);
+
+        ctx.textAlign = "center";
+
+        if (circleParameters.selectedTonic != null && chord.active) {
+            var degree = chord.getDegree(circleParameters.selectedTonic);
+            ctx.fillStyle = circleParameters.tonicColor;
+            ctx.fillText(degree, x, y);
+        }
+
+        ctx.restore();
+    }
+
     ctx.font = chord.minor ? "20px Arial" : "30px Arial";
     ctx.fillStyle = chord.active ? circleParameters.activeColor : circleParameters.inactiveColor;
 
+    //Highlight tonic chord
+
+    if (circleParameters.selectedTonic != null && chord.isTonicChord(circleParameters.selectedTonic)) {
+        ctx.fillStyle = circleParameters.tonicColor;
+        ctx.font = "bold 30px Arial";
+    } else if(circleParameters.altTonic != null && chord.isTonicChord(circleParameters.altTonic)) {
+        ctx.fillStyle = circleParameters.altColor;
+        ctx.font = "bold 30px Arial";
+    }
+
+    ctx.globalAlpha = origAlpha;
 
     //Calculate actual chord text to draw
 
