@@ -483,19 +483,19 @@ function drawChord(chord,ctx,xc,yc,r) {
 
     if (chord.highlight == ChordHighlightType.Sector || chord.highlight == ChordHighlightType.Fog) {
         
-        ctx.globalAlpha = 0.4;
-
         if (chord.highlight == ChordHighlightType.Fog) {
             // Create gradient
             var grd = ctx.createRadialGradient(x, y, 0, x, y, 50);
             grd.addColorStop(0, chord.highlightColor);
             grd.addColorStop(1, "rgba(255,255,255,0)");
 
+	    ctx.globalAlpha = 0.65;
             ctx.fillStyle = grd;
-
         }
-        else
+        else{
+	    ctx.globalAlpha = 0.4;
             ctx.fillStyle = chord.highlightColor;
+	}
         
         ctx.beginPath();
 
