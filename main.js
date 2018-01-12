@@ -30,10 +30,12 @@ var circleParameters = {
     sectorRadians: Math.PI * 2 / 12,
 
     selectedTonic: 0,
+    altTonic: 3,
+    tonicShown : true,
+    altTonicShown : false,
     tonicDegreeEnabled: true,
     tonicColor: "red",
-    altColor:"yellow",
-    altTonic: 3
+    altColor:"yellow"
 };
 
 /**
@@ -245,6 +247,7 @@ function setTonic(x, y, canvas) {
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
 
     circleParameters.selectedTonic = tonic;
+    circleParameters.tonicShown = true;
 
     document.getElementById("tonic-enabled").checked = true;
 
@@ -258,6 +261,7 @@ function setAltTonic(x, y, canvas) {
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
 
     circleParameters.altTonic = tonic;
+    circleParameters.altTonicShown = true;
 
     document.getElementById("alt-enabled").checked = true;
 
@@ -310,21 +314,18 @@ function toggleSectorHighlight(x, y, cavnas) {
     /////////////////////////////////////////////////////////////////
 
 function redraw() {
-    tonic();
-    drawCo5(main.ctx, main.clientWidth, main.clientHeight);
-}
-function tonic() {
-    var tonicColor = document.getElementById("tonic-color").value,
-    tEnabled = document.getElementById("tonic-enabled").checked;
 
-    var altColor = document.getElementById("alt-color").value,
-    altEnabled = document.getElementById("alt-enabled").checked;
+    //Get parameters from UI
 
-    circleParameters.tonicColor = tonicColor;
-    circleParameters.altColor = altColor;
+    circleParameters.tonicColor = document.getElementById("tonic-color").value;
+    circleParameters.altColor = document.getElementById("alt-color").value;
     circleParameters.tonicDegreeEnabled = document.getElementById("tonic-degree-enabled").checked;
-    circleParameters.selectedTonic = tEnabled ? circleParameters.selectedTonic : null;
-    circleParameters.altTonic = altEnabled ? circleParameters.altTonic : null;
+    circleParameters.tonicShown = document.getElementById("tonic-enabled").checked;
+    circleParameters.altTonicShown = document.getElementById("alt-enabled").checked;
+
+    //Draw cicrcle
+
+    drawCo5(main.ctx, main.clientWidth, main.clientHeight);
 }
 
 //
@@ -347,10 +348,10 @@ function drawCo5(ctx, witdh, height) {
     //Select chords in tonic/alt
 
     for (let chord of chordDefinitions) {
-        chord.active = circleParameters.selectedTonic != null ? chord.inTonic(circleParameters.selectedTonic) : false;
+        chord.active = circleParameters.tonicShown ? chord.inTonic(circleParameters.selectedTonic) : false;
     }
 
-    if (circleParameters.altTonic!=null) {
+    if (circleParameters.altTonicShown) {
         for (let chord of chordDefinitions)
             chord.active|= chord.inTonic(circleParameters.altTonic);
     }
@@ -392,7 +393,7 @@ function drawCo5(ctx, witdh, height) {
         (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents
         );
     //Alternative tonic
-    if (circleParameters.altTonic != null) {
+    if (circleParameters.altTonicShown) {
 
         var angles = _getTonicAngles(circleParameters.altTonic);
 
@@ -407,7 +408,7 @@ function drawCo5(ctx, witdh, height) {
         ctx.stroke();
     }
     //Main tonic
-    if (circleParameters.selectedTonic != null) {
+    if (circleParameters.tonicShown) {
 
         var angles = _getTonicAngles(circleParameters.selectedTonic);
 
@@ -560,7 +561,7 @@ function drawChord(chord,ctx,xc,yc,r) {
 
         ctx.textAlign = "center";
 
-        if (circleParameters.selectedTonic != null && chord.active) {
+        if (circleParameters.tonicShown && chord.active) {
             var degree = chord.getDegree(circleParameters.selectedTonic);
             ctx.fillStyle = circleParameters.tonicColor;
             ctx.fillText(degree, x, y);
@@ -574,10 +575,10 @@ function drawChord(chord,ctx,xc,yc,r) {
 
     //Highlight tonic chord
 
-    if (circleParameters.selectedTonic != null && chord.isTonicChord(circleParameters.selectedTonic)) {
+    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic)) {
         ctx.fillStyle = circleParameters.tonicColor;
         ctx.font = "bold 30px Arial";
-    } else if(circleParameters.altTonic != null && chord.isTonicChord(circleParameters.altTonic)) {
+    } else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic)) {
         ctx.fillStyle = circleParameters.altColor;
         ctx.font = "bold 30px Arial";
     }
