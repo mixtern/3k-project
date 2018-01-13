@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <title>Кварто-Квинтовый круг</title>
   <link rel="stylesheet" href="style.css">
+  <script src="arrows.js"></script>
   <script src="main.js"></script>
 </head>
 <body>
   <div class="container">
     <div id="kkk">
       <canvas id="main" height="600" width="600"></canvas>
-      <canvas id="temp" height="600" width="600"></canvas>
     </div>
     <div id="settings">
 
@@ -79,7 +79,26 @@
 
         <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-arrows-controls" style="display:none">
-            Все что нужно для работы со стрелками
+            Цвет
+            <input type="color" id="arrow-color" value="#00AAFF" onchange="redraw()"><br />
+            Жирнота
+            <div class="rangeslidecontainer">
+                <input type="range" min="1" max="10" value="3" class="rangeslider" id="arrow-thickness"><br />
+            </div>
+            Гладкота
+            <div class="rangeslidecontainer">
+                <input type="range" min="10" max="5000" value="500" class="rangeslider" id="arrow-simplification"><br />
+            </div>
+            <input type="checkbox" id="arrow-snap" checked>
+            Начало-конец на аккордах?<br /><br />
+            Прозрачность
+            <div class="rangeslidecontainer">
+                <input type="range" min="0" max="80" value="0" class="rangeslider" id="arrow-transparency"><br />
+            </div>
+
+            <button class="btn" onclick="removeLastArrow()">⮌</button>
+            <button class="btn" onclick="removeAllArrows()">☠</button>
+
         </div>
 
 

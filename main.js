@@ -1,4 +1,4 @@
-﻿var main = {}
+﻿var main = {};
 /*
  Co5 chord definitions 
 */
@@ -57,6 +57,9 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
 
         base: basename,
         baseMod: baseModeration,
+
+        actualPx : null,
+        actualPy : null,
 
         hasAlternateName: altName !== "",
         altName: altName,
@@ -144,12 +147,32 @@ window.addEventListener('load', function ()
 {
     main = document.getElementById('main');
     main.ctx = main.getContext('2d');
-    
+
+   
     main.addEventListener('mousedown',
     function (event) {
-        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main);
+        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mousedown');
         return false;
     },false);
+
+    main.addEventListener('mousemove',
+    function (event) {
+        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mousemove');
+        return false;
+    },false);
+
+    main.addEventListener('mouseup',
+     function (event) {
+         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseup');
+         return false;
+     },false);
+
+    main.addEventListener('mouseleave',
+     function (event) {
+         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseup');
+         return false;
+     },false);
+
 
     redraw();
 });
@@ -168,7 +191,7 @@ var availableModeFunctions = {
     'mode-basetone':setTonic,
     'mode-alttone':setAltTonic,
     'mode-chords':toggleSectorHighlight,
-    'mode-arrows':setTonic,
+    'mode-arrows':createArrowsHandler,
 };
 
 var availableChordHighlights = {
@@ -240,7 +263,11 @@ function setChordmode(source) {
 
 /////////////////////////////////////////////////////////////////
 
-function setTonic(x, y, canvas) {
+function setTonic(x, y, canvas,evtype) {
+
+    if (evtype != 'mousedown')
+        return;
+
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
     var angle = Math.atan2(y - yc, x - xc),
@@ -254,7 +281,11 @@ function setTonic(x, y, canvas) {
     redraw();
 }
 
-function setAltTonic(x, y, canvas) {
+function setAltTonic(x, y, canvas,evtype) {
+
+    if (evtype != 'mousedown')
+        return;
+
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
     var angle = Math.atan2(y - yc, x - xc),
@@ -268,7 +299,10 @@ function setAltTonic(x, y, canvas) {
     redraw();
 }
 
-function toggleSectorHighlight(x, y, cavnas) {
+function toggleSectorHighlight(x, y, cavnas,evtype) {
+
+    if (evtype != 'mousedown')
+        return;
 
     var xc = cavnas.clientWidth / 2;
     var yc = cavnas.clientHeight / 2;
@@ -313,6 +347,10 @@ function toggleSectorHighlight(x, y, cavnas) {
 
     /////////////////////////////////////////////////////////////////
 
+ /**
+ * Draws all items (circle of fifths & arrows)
+ * @returns {} 
+ */
 function redraw() {
 
     //Get parameters from UI
@@ -326,6 +364,7 @@ function redraw() {
     //Draw cicrcle
 
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
+    drawArrows(main.ctx, main.clientWidth, main.clientHeight);
 }
 
 //
@@ -597,6 +636,9 @@ function drawChord(chord,ctx,xc,yc,r) {
 
     var dim = ctx.measureText(combinedText);
     var lineHeight = ctx.measureText('M').width; //hack
+
+    chord.actualPx = x;
+    chord.actualPy = y;
 
     ctx.fillText(combinedText, x - dim.width / 2, y + lineHeight / 2);
 
