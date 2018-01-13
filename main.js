@@ -177,6 +177,16 @@ window.addEventListener('load', function ()
     redraw();
 });
 
+/**
+ * Downloads image from canvas
+ * @returns {} 
+ */
+function downloadImage() {
+    main.toBlob(function(blob) {
+        saveAs(blob, "COF_"+Date.now()+".png");
+    }, "image/png");
+}
+
 //*****//
 //MODE SELECTION - RELATED
 //*****//
