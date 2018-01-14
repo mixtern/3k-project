@@ -174,6 +174,18 @@ window.addEventListener('load', function ()
      },false);
 
 
+    window.addEventListener('keydown',
+     function (event) {
+         activeModeFunction(0, 0, main,'keydown',event.keyCode);
+         return false;
+     },false);
+
+    window.addEventListener('keyup',
+ function (event) {
+     activeModeFunction(0, 0, main,'keyup',event.keyCode);
+     return false;
+ },false);
+
     redraw();
 });
 
