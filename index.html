@@ -4,15 +4,29 @@
   <meta charset="UTF-8">
   <title>Кварто-Квинтовый круг</title>
   <link rel="stylesheet" href="style.css">
+    <script src="labels.js"></script>
   <script src="arrows.js"></script>
   <script src="main.js"></script>
   <script async="" async src="https://cdn.rawgit.com/eligrey/FileSaver.js/b4a91866/FileSaver.js"></script>
 </head>
 <body>
+    
+    <div id="modalWindow" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <span id="modal-text"></span>
+        </div>
+
+    </div>
+
   <div class="container">
     <div id="kkk">
       <canvas id="main" height="600" width="600"></canvas>
     </div>
+
+
     <div id="settings">
 
         <!-- MODE SELECTORS -->
@@ -105,11 +119,37 @@
             <button class="btn" onclick="removeAllArrows()">☠</button>
 
         </div>
+
+        <label class="switch">
+            <input type="checkbox" id="mode-labels" onchange="changemode(this)">
+            <span class="slider">ПОДПИСИ</span>
+        </label>
+
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-labels-controls" style="display:none">
+            Цвет
+            <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
+            Размер
+            <div class="rangeslidecontainer">
+                <input type="range" min="12" max="35" value="25" class="rangeslider" id="label-size"><br />
+            </div>
+
+            <input type="text" id="label-text" placeholder="Сюда текст">
+            <div class="validation" id="label-text-validation">Нужно вписать сюда какой-то текст!</div>
+            
+            <button class="btn" onclick="removeLastLabel()">⮌</button>
+            <button class="btn" onclick="removeAllLabels()">☠</button>
+
+        </div>
         
         <button class="btn" onclick="downloadImage()">↓Download↓</button>
 
 
+
+
     </div>
   </div>
+
+
 </body>
 </html>

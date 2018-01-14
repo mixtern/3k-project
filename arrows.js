@@ -1,8 +1,6 @@
-var myPoints = [10, 10, 40, 30, 100, 10, 200, 100, 200, 50, 250, 120]; //minimum two points
-
 function createArrow(arrowColor,arrowThickness,arrowOpacity,xstart,ystart) {
     return {
-        header: '',
+        header: '', //still WIP
         color: arrowColor,
         thickness: arrowThickness,
         opacity:arrowOpacity,
@@ -43,7 +41,77 @@ function drawArrows(ctx, width, height) {
         ctx.lineWidth = arrow.thickness;
         ctx.globalAlpha = arrow.opacity;
 
-        drawCurve(ctx, arrow.points, 0.5);
+        var pts = drawCurve(ctx, arrow.points, 0.5);
+
+        if(arrow.header && arrow.header.length > 0)
+        {
+            ctx.fillStyle = arrow.color;
+
+            var prevAngle = null;
+
+            var symbolNum = 0;
+            var pointNum = 0;
+            var step = 12;
+
+            var header = arrow.header;
+
+            var textDim = ctx.measureText(header).width;
+
+            //Find midpoint
+
+
+
+            var pEnd = pointNum;
+
+            while (pEnd < pts.length && getSqDist(pts[pEnd], pts[pointNum]) < textDim * textDim)
+                ++pEnd;
+
+            //todo: more specific LTR check
+            if (pts[pointNum].x > pts[pEnd].x)
+                header = header.split("").reverse().join("");
+
+            
+
+            while (symbolNum < header.length) {
+
+                var i = pointNum;
+                var dx = 0;
+
+                while (i < pts.length && dx < step * step) {
+                    dx += getSqDist(pts[i], pts[i+1]);
+                    ++i;
+                }
+
+
+                var angle = Math.atan2(pts[pointNum].y - pts[i].y, pts[pointNum].x - pts[i].x);
+
+                while (angle > Math.PI / 2)
+                    angle -= Math.PI;
+
+                while (angle < -Math.PI / 2)
+                    angle += Math.PI;
+
+                if (null == prevAngle)
+                    prevAngle = angle;
+
+                while (prevAngle - angle > Math.PI / 2)
+                    angle += Math.PI;
+
+                while (prevAngle - angle < -Math.PI / 2)
+                    angle -= Math.PI;
+
+                prevAngle = angle;
+                pointNum = i;
+
+                drawSymbolRotated(ctx, pts[pointNum].x, pts[pointNum].y, angle, header.charAt(symbolNum));
+
+
+
+                symbolNum++;
+            }
+
+        }
+
     }
 
     //Draw currently created arrow as linelist, if any
@@ -124,6 +192,15 @@ function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
 
             if (arrowSettings.drawingArrow != null && !arrowSettings.alternateDrawingMode) {
                 finishArrow();
+            }
+
+            break;
+
+        case 'mouseleave':
+
+            if (arrowSettings.drawingArrow != null) {
+                finishArrow();
+                arrowSettings.alternateDrawingMode = false;
             }
 
             break;
@@ -327,7 +404,7 @@ function getCurvePoints(pts, tension) {
 
     // use input value if provided, or use a default value	 
     tension = (typeof tension != 'undefined') ? tension : 0.5;
-    numOfSegments = 16;
+    numOfSegments = 32;
 
     var ptsCopy = [], result = [],	// clone array
         x, y,			// our x,y coords
@@ -406,6 +483,8 @@ function drawCurve(ctx, ptsa, tension) {
     }
 
     ctx.stroke();
+
+    return points;
 }
 
 function drawLines(ctx, pts) {
@@ -417,4 +496,21 @@ function drawLines(ctx, pts) {
 
     for (i = 1; i < pts.length; i++)
         ctx.lineTo(pts[i].x, pts[i].y);
+}
+
+function drawSymbolRotated(ctx,x,y,angle,symbol)
+{
+    ctx.save();
+    
+    var meas = {
+        x: ctx.measureText(symbol).width,
+        y: ctx.measureText('M').width
+    };
+
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.translate(-meas.x / 2, -meas.y / 2);
+
+    ctx.fillText(symbol, 0, 0);
+    ctx.restore();
 }
