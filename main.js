@@ -169,7 +169,7 @@ window.addEventListener('load', function ()
 
     main.addEventListener('mouseleave',
      function (event) {
-         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseup');
+         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseleave');
          return false;
      },false);
 
@@ -214,6 +214,8 @@ var availableModeFunctions = {
     'mode-alttone':setAltTonic,
     'mode-chords':toggleSectorHighlight,
     'mode-arrows':createArrowsHandler,
+    'mode-labels':createLabelsHandler
+    
 };
 
 var availableChordHighlights = {
@@ -387,6 +389,7 @@ function redraw() {
 
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
     drawArrows(main.ctx, main.clientWidth, main.clientHeight);
+    drawLabels(main.ctx, main.clientWidth, main.clientHeight);
 }
 
 //
