@@ -2,6 +2,7 @@ var myPoints = [10, 10, 40, 30, 100, 10, 200, 100, 200, 50, 250, 120]; //minimum
 
 function createArrow(arrowColor,arrowThickness,arrowOpacity,xstart,ystart) {
     return {
+        header: '',
         color: arrowColor,
         thickness: arrowThickness,
         opacity:arrowOpacity,
@@ -20,6 +21,7 @@ var arrowSettings = {
     arrowSnap: false,
 
     drawingArrow: null,
+    alternateDrawingMode : false
 };
 
 /**
@@ -47,6 +49,19 @@ function drawArrows(ctx, width, height) {
     //Draw currently created arrow as linelist, if any
 
     if (arrowSettings.drawingArrow != null) {
+
+        if (arrowSettings.alternateDrawingMode) {
+            ctx.globalAlpha = 0.2;
+            ctx.fillStyle = arrowSettings.drawingArrow.color;            
+
+            for (let pt of arrowSettings.drawingArrow.points)
+            {
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
         ctx.beginPath();
 
         ctx.globalAlpha = arrowSettings.drawingArrow.opacity;
@@ -71,6 +86,7 @@ function removeAllArrows() {
     redraw();
 }
 
+
 /**
  * Called from main.js on mouse move/up/down
  * @param {} px cursor x
@@ -79,21 +95,25 @@ function removeAllArrows() {
  * @param {string} evtype event type : 'mousedown'/'mousemove'/'mouseup'
  * @returns {} 
  */
-function createArrowsHandler(px, py, cavnas, evtype) {
+function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
     switch (evtype) {
         case 'mousedown':
 
-            arrowSettings.arrowColor = document.querySelector("#arrow-color").value;
-            arrowSettings.arrowThickness = document.querySelector("#arrow-thickness").value;
-            arrowSettings.arrowOpacity = 1.0 -document.querySelector("#arrow-transparency").value/100.0;
-            arrowSettings.arrowSimplification = document.querySelector("#arrow-simplification").value;
-            arrowSettings.arrowSnap = document.querySelector("#arrow-snap").checked;
+            if (arrowSettings.alternateDrawingMode){
+                if (arrowSettings.drawingArrow == null)
+                    startArrow(px,py);
+                else{
+                    arrowSettings.drawingArrow.points.push({ x: px, y: py });
+                    redraw();
+                }
+            }
+            else {
+                startArrow(px,py);
+            }
 
-            arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor, arrowSettings.arrowThickness, arrowSettings.arrowOpacity, px, py);
-            redraw();
             break;
         case 'mousemove':
-            if (arrowSettings.drawingArrow != null) {
+            if (arrowSettings.drawingArrow != null && !arrowSettings.alternateDrawingMode) {
 
                 arrowSettings.drawingArrow.points.push({ x: px, y: py });
 
@@ -102,15 +122,53 @@ function createArrowsHandler(px, py, cavnas, evtype) {
             break;
         case 'mouseup':
 
-            if (arrowSettings.drawingArrow != null) {
-                activeArrows.push(cleanupArrow(arrowSettings.drawingArrow));
-                arrowSettings.drawingArrow = null;
-                redraw();
+            if (arrowSettings.drawingArrow != null && !arrowSettings.alternateDrawingMode) {
+                finishArrow();
             }
 
             break;
+
+        case 'keydown':
+
+            //Ctrl
+            if (keyCode == 17) 
+                arrowSettings.alternateDrawingMode = true;            
+
+            break;
+
+        case 'keyup':
+
+            //Ctrl
+            if (keyCode == 17 && arrowSettings.alternateDrawingMode) {
+                if(arrowSettings.drawingArrow != null)
+                    finishArrow(true);
+
+                arrowSettings.alternateDrawingMode = false;
+            }
+
+            break;
+
         default:
     }
+}
+
+function startArrow(px,py)
+{
+    arrowSettings.arrowColor = document.querySelector("#arrow-color").value;
+    arrowSettings.arrowThickness = document.querySelector("#arrow-thickness").value;
+    arrowSettings.arrowOpacity = 1.0 - document.querySelector("#arrow-transparency").value / 100.0;
+    arrowSettings.arrowSimplification = document.querySelector("#arrow-simplification").value;
+    arrowSettings.arrowSnap = document.querySelector("#arrow-snap").checked;
+
+    arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor, arrowSettings.arrowThickness, arrowSettings.arrowOpacity, px, py);
+    redraw();
+}
+
+function finishArrow(minimalistic)
+{
+    activeArrows.push(cleanupArrow(arrowSettings.drawingArrow, minimalistic));
+    arrowSettings.drawingArrow = null;
+    redraw();
 }
 
 /**
@@ -118,9 +176,9 @@ function createArrowsHandler(px, py, cavnas, evtype) {
  * @param {} arrow 
  * @returns {}
  */
-function cleanupArrow(arrow) {
+function cleanupArrow(arrow, minimalistic) {
 
-    if (arrowSettings.arrowSnap ) {
+    if (arrowSettings.arrowSnap && !minimalistic) {
 
         var start = arrow.points[0];
         var end = arrow.points[arrow.points.length-1];
@@ -184,7 +242,8 @@ function cleanupArrow(arrow) {
         arrow.points[arrow.points.length - 1] = { x: endsnap.x, y: endsnap.y };
     }
 
-    arrow.points = simplifyDouglasPeucker(arrow.points, arrowSettings.arrowSimplification);
+    if (!minimalistic)
+        arrow.points = simplifyDouglasPeucker(arrow.points, arrowSettings.arrowSimplification);
 
     return arrow;
 }

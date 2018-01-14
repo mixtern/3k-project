@@ -172,3 +172,9 @@ button:hover {
     color: white;
     transition: .4s;
 }
+
+.hint{
+    display:block;
+    font-size:70%;
+    color:darkgray;
+}
