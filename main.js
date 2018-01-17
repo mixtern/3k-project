@@ -214,7 +214,8 @@ var availableModeFunctions = {
     'mode-alttone':setAltTonic,
     'mode-chords':toggleSectorHighlight,
     'mode-arrows':createArrowsHandler,
-    'mode-labels':createLabelsHandler
+    'mode-labels':createLabelsHandler,
+    'mode-fill':setTonic,
     
 };
 
@@ -392,9 +393,39 @@ function redraw() {
     drawLabels(main.ctx, main.clientWidth, main.clientHeight);
 }
 
+
 function fillBackground(ctx,w,h) {
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, w, h);
+
+    ctx.clearRect(0, 0, w, h);
+
+    var col = document.querySelector("#fill-bgcolor").value;
+
+    if (document.querySelector("#fill-whiten").checked) {
+
+        col = col.replace("#","");
+
+        var r = parseInt(col.substr(0, 2),16);
+        var g = parseInt(col.substr(2, 2),16);
+        var b = parseInt(col.substr(4, 2),16);
+        var k = 0.9;
+
+        r = Math.round(255 * k + (1 - k) * r);
+        g = Math.round(255 * k + (1 - k) * g);
+        b = Math.round(255 * k + (1 - k) * b);
+
+        col = "rgb(" + r.toString() + "," + g.toString() + "," + b.toString() + ")";
+    }
+        
+    ctx.fillStyle = col;
+
+    if (!document.querySelector("#fill-circlefill").checked)
+        ctx.fillRect(0, 0, w, h);
+    else {
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, Math.min(w / 2, h / 2), 0, Math.PI * 2);
+        ctx.fill();
+    }
+
 }
 
 //
