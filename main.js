@@ -386,10 +386,15 @@ function redraw() {
     circleParameters.altTonicShown = document.getElementById("alt-enabled").checked;
 
     //Draw cicrcle
-
+    fillBackground(main.ctx, main.clientWidth, main.clientHeight);
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
     drawArrows(main.ctx, main.clientWidth, main.clientHeight);
     drawLabels(main.ctx, main.clientWidth, main.clientHeight);
+}
+
+function fillBackground(ctx,w,h) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, w, h);
 }
 
 //
@@ -406,8 +411,6 @@ function drawCo5(ctx, witdh, height) {
     var r = Math.min(xc, yc);
 
     var rstart = r * (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents);
-
-    ctx.clearRect(0, 0, witdh, height);
 
     //Select chords in tonic/alt
 
