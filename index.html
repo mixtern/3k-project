@@ -143,6 +143,25 @@
             <button class="btn" onclick="removeAllLabels()">☠</button>
 
         </div>
+
+        <label class="switch">
+            <input type="checkbox" id="mode-fill" onchange="changemode(this)">
+            <span class="slider">ФОН</span>
+        </label>
+
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-fill-controls" style="display:none">
+            Цвет
+            <input type="color" id="fill-bgcolor" value="#FFFFFF" onchange="redraw()"><br />
+
+            <input type="checkbox" id="fill-circlefill" checked onchange="redraw()">
+            Заливка - круг?<br /><br />
+
+            <input type="checkbox" id="fill-whiten" checked onchange="redraw()">
+            Светленьким?<br /><br />
+
+            
+        </div>
         
         <button class="btn" onclick="downloadImage()">↓Download↓</button>
 
