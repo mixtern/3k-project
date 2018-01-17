@@ -41,7 +41,7 @@ function drawArrows(ctx, width, height) {
         ctx.lineWidth = arrow.thickness;
         ctx.globalAlpha = arrow.opacity;
 
-        var pts = drawCurve(ctx, arrow.points, 0.5);
+        var curve = drawCurve(ctx, arrow.points, 0.5);
 
         if(arrow.header && arrow.header.length > 0)
         {
@@ -50,8 +50,7 @@ function drawArrows(ctx, width, height) {
             var prevAngle = null;
 
             var symbolNum = 0;
-            var pointNum = 0;
-            var step = 12;
+            var startPoint = 0;
 
             var header = arrow.header;
 
@@ -59,31 +58,45 @@ function drawArrows(ctx, width, height) {
 
             //Find midpoint
 
+            var totlen = getCurveLength(curve, 0, curve.length - 1);
 
+            while (getCurveLength(curve, 0, startPoint)+textDim/2 < totlen / 2)
+                startPoint++;
 
-            var pEnd = pointNum;
+            //Check whenter text is RTL and flip it
+            
+            var endPoint = startPoint;
+            var nRtl = 0;
+            var nLtr = 0;
 
-            while (pEnd < pts.length && getSqDist(pts[pEnd], pts[pointNum]) < textDim * textDim)
-                ++pEnd;
+            while (endPoint < curve.length - 1 && getCurveLength(curve, startPoint, endPoint) < textDim) {
+
+                if (curve[endPoint].x < curve[endPoint + 1].x)
+                    nLtr++;
+                else
+                    nRtl++;
+
+                ++endPoint;
+            }
 
             //todo: more specific LTR check
-            if (pts[pointNum].x > pts[pEnd].x)
+            if (nRtl > nLtr)
                 header = header.split("").reverse().join("");
-
             
-
             while (symbolNum < header.length) {
 
-                var i = pointNum;
-                var dx = 0;
+                var nextPoint = startPoint;
 
-                while (i < pts.length && dx < step * step) {
-                    dx += getSqDist(pts[i], pts[i+1]);
-                    ++i;
+                var step = symbolNum==0? 0 : ctx.measureText(header[symbolNum-1]).width;
+
+                while (nextPoint < curve.length - 1 && getCurveLength(curve,startPoint,nextPoint) < step) {
+                    ++nextPoint;
                 }
 
+                if (startPoint == nextPoint && startPoint < curve.length-1)
+                    nextPoint++;
 
-                var angle = Math.atan2(pts[pointNum].y - pts[i].y, pts[pointNum].x - pts[i].x);
+                var angle = Math.atan2(curve[startPoint].y - curve[nextPoint].y, curve[startPoint].x - curve[nextPoint].x);
 
                 while (angle > Math.PI / 2)
                     angle -= Math.PI;
@@ -101,11 +114,9 @@ function drawArrows(ctx, width, height) {
                     angle -= Math.PI;
 
                 prevAngle = angle;
-                pointNum = i;
+                startPoint = nextPoint;
 
-                drawSymbolRotated(ctx, pts[pointNum].x, pts[pointNum].y, angle, header.charAt(symbolNum));
-
-
+                drawSymbolRotated(ctx, curve[startPoint].x, curve[startPoint].y, angle, header.charAt(symbolNum));
 
                 symbolNum++;
             }
@@ -361,6 +372,24 @@ function getSqSegDist(p, p1, p2) {
 
 function getSqDist(p1,p2) {
     return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
+}
+
+function getCurveLength(curve, i1, i2) {
+    var dist = 0;
+
+    if (i1 == i2 || i1 >= curve.length || i2 >= curve.length || i1 < 0 || i2 < 0)
+        return 0;
+
+    if (i1 > i2) {
+        var t = i1;
+        i1 = i2;
+        i2 = t;
+    }
+    
+    for (var i = i1; i < i2-1; ++i)
+        dist += Math.sqrt(getSqDist(curve[i], curve[i + 1]));
+
+    return dist;
 }
 
 function simplifyDPStep(points, first, last, sqTolerance, simplified) {
