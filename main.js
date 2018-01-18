@@ -19,6 +19,8 @@ var ChordAlterationType = Object.freeze({
 
 
 var circleParameters = {
+    marginPx: 5,
+    outerRadiusPercents : 1,
     majorCircleThicknessPercents : 0.25,
     minorCircleThicknessPercents  : 0.25,
 
@@ -28,6 +30,9 @@ var circleParameters = {
 
     sectorCount: 12,
     sectorRadians: Math.PI * 2 / 12,
+
+    isTonicMinor : false,
+    isAltTonicMinor : false,
 
     selectedTonic: 0,
     altTonic: 3,
@@ -78,16 +83,16 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
         },
 
         //Returns true if this chord is tonic chord
-        isTonicChord: function (tonic) {
+        isTonicChord: function (tonic,selMinor) {
         var tonic12 = (tonic + 6) % 12;
         var pos12 = (this.position+6) % 12;
 
-        return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) == 0 && !this.minor;
+        return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) == 0 && this.minor == selMinor;
         },
 
         //Returns chord degree in given tonality
-        getDegree: function (tonality) {
-            var tonic12 = (tonality + 6) % 12;
+        getDegree: function (tonality, isMinor) {
+            var tonic12 = (tonality + 6 ) % 12;
             var pos12 = (this.position+6) % 12;
 
             if (!this.inTonic(tonality))
@@ -97,10 +102,22 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
 
             switch (mod) {
                 case 1:
+                    
+                    if(isMinor)
+                        return this.minor ? "iv" : "VI";
+
                     return this.minor ? "ii" : "IV";
                 case 0:
+
+                    if(isMinor)
+                        return this.minor ? "i" : "III";
+
                     return this.minor ? "vi" : "I";                
                 case 11:
+
+                    if(isMinor)
+                        return this.minor ? "v" : "VII";
+
                     return this.minor ? "iii" : "V";                
                 default:
                     return mod;
@@ -295,11 +312,18 @@ function setTonic(x, y, canvas,evtype) {
 
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
-    var angle = Math.atan2(y - yc, x - xc),
+    var rmax = Math.min(xc, yc);
+
+    x -= xc;
+    y -= yc;
+    var r = Math.sqrt(x * x + y * y) / rmax;
+
+    var angle = Math.atan2(y , x),
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
 
     circleParameters.selectedTonic = tonic;
     circleParameters.tonicShown = true;
+    circleParameters.isTonicMinor = r < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
 
     document.getElementById("tonic-enabled").checked = true;
 
@@ -313,11 +337,17 @@ function setAltTonic(x, y, canvas,evtype) {
 
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
-    var angle = Math.atan2(y - yc, x - xc),
+    var rmax = Math.min(xc, yc);
+
+    x -= xc;
+    y -= yc;
+    var r = Math.sqrt(x * x + y * y) / rmax;
+    var angle = Math.atan2(y, x),
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
 
     circleParameters.altTonic = tonic;
     circleParameters.altTonicShown = true;
+    circleParameters.isAltTonicMinor = r < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
 
     document.getElementById("alt-enabled").checked = true;
 
@@ -422,7 +452,7 @@ function fillBackground(ctx,w,h) {
         ctx.fillRect(0, 0, w, h);
     else {
         ctx.beginPath();
-        ctx.arc(w / 2, h / 2, Math.min(w / 2, h / 2), 0, Math.PI * 2);
+        ctx.arc(w / 2, h / 2, Math.min(w / 2, h / 2) - circleParameters.marginPx, 0, Math.PI * 2);
         ctx.fill();
     }
 
@@ -439,9 +469,9 @@ function drawCo5(ctx, witdh, height) {
     var xc = witdh / 2;
     var yc = height / 2;
 
-    var r = Math.min(xc, yc);
+    var r = Math.min(xc, yc) - circleParameters.marginPx;
 
-    var rstart = r * (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents);
+    var rstart = r * (circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents);
 
     //Select chords in tonic/alt
 
@@ -462,7 +492,7 @@ function drawCo5(ctx, witdh, height) {
     ctx.arc(xc, yc, r, 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(xc, yc, r * (1- circleParameters.majorCircleThicknessPercents), 0, Math.PI * 2);
+    ctx.arc(xc, yc, r * (circleParameters.outerRadiusPercents- circleParameters.majorCircleThicknessPercents), 0, Math.PI * 2);
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(xc, yc, rstart, 0, Math.PI * 2);
@@ -488,7 +518,7 @@ function drawCo5(ctx, witdh, height) {
     //Draw tonic selections
 
     var rmin = r *
-        (1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents
+        (circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents
         );
     //Alternative tonic
     if (circleParameters.altTonicShown) {
@@ -501,8 +531,17 @@ function drawCo5(ctx, witdh, height) {
 
         ctx.moveTo(xc + rmin * Math.cos(angles.amin), yc + rmin * Math.sin(angles.amin));
         ctx.lineTo(xc + r * Math.cos(angles.amin), yc + r * Math.sin(angles.amin));
-        ctx.arc(xc, yc, r, angles.amin, angles.amax);
+        
+        if(!circleParameters.isAltTonicMinor)
+            ctx.arc(xc, yc, r, angles.amin, angles.amax);
+        else
+            ctx.moveTo(xc + r * Math.cos(angles.amax), yc + r * Math.sin(angles.amax));
+
         ctx.lineTo(xc + rmin * Math.cos(angles.amax), yc + rmin * Math.sin(angles.amax));
+
+        if(circleParameters.isAltTonicMinor)
+            ctx.arc(xc, yc, rmin, angles.amax, angles.amin,true);
+
         ctx.stroke();
     }
     //Main tonic
@@ -516,8 +555,17 @@ function drawCo5(ctx, witdh, height) {
 
         ctx.moveTo(xc + rmin * Math.cos(angles.amin), yc + rmin * Math.sin(angles.amin));
         ctx.lineTo(xc + r * Math.cos(angles.amin), yc + r * Math.sin(angles.amin));
-        ctx.arc(xc, yc, r, angles.amin, angles.amax);
+        
+        if(!circleParameters.isTonicMinor)
+            ctx.arc(xc, yc, r, angles.amin, angles.amax);
+        else
+            ctx.moveTo(xc + r * Math.cos(angles.amax), yc + r * Math.sin(angles.amax));
+
         ctx.lineTo(xc + rmin * Math.cos(angles.amax), yc + rmin * Math.sin(angles.amax));
+
+        if(circleParameters.isTonicMinor)
+            ctx.arc(xc, yc, rmin, angles.amax, angles.amin,true);
+
         ctx.stroke();
     }
 }
@@ -551,8 +599,8 @@ function getChordBoundsFromDefinition(chord) {
 
     return {
         angle: angle2pi,
-        offmax: chord.minor ? 1 - circleParameters.majorCircleThicknessPercents : 1,
-        offmin: chord.minor ? 1 - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents : 1 - circleParameters.majorCircleThicknessPercents,
+        offmax: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents : circleParameters.outerRadiusPercents,
+        offmin: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents : circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents,
     };
 }
 
@@ -660,7 +708,7 @@ function drawChord(chord,ctx,xc,yc,r) {
         ctx.textAlign = "center";
 
         if (circleParameters.tonicShown && chord.active) {
-            var degree = chord.getDegree(circleParameters.selectedTonic);
+            var degree = chord.getDegree(circleParameters.selectedTonic, circleParameters.isTonicMinor);
             ctx.fillStyle = circleParameters.tonicColor;
             ctx.fillText(degree, x, y);
         }
@@ -673,12 +721,12 @@ function drawChord(chord,ctx,xc,yc,r) {
 
     //Highlight tonic chord
 
-    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic)) {
+    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) {
         ctx.fillStyle = circleParameters.tonicColor;
-        ctx.font = "bold 30px Arial";
-    } else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic)) {
+        ctx.font = chord.minor ?"bold 20px Arial":"bold 30px Arial";
+    } else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic, circleParameters.isAltTonicMinor)) {
         ctx.fillStyle = circleParameters.altColor;
-        ctx.font = "bold 30px Arial";
+        ctx.font = chord.minor ?"bold 20px Arial":"bold 30px Arial";
     }
 
     ctx.globalAlpha = origAlpha;
