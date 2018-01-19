@@ -9,6 +9,7 @@ var ChordHighlightType =  Object.freeze({
     Fog: 2,
     Circle: 3,
     DoubleCircle: 4,
+    Underline: 5,
 });
 
 var ChordAlterationType = Object.freeze({
@@ -16,6 +17,18 @@ var ChordAlterationType = Object.freeze({
     Sharp: 1,
     Flat: 2
 });
+
+var ModeDefinitions = Object.freeze({
+    None: {color: ''},
+    Ionian : {color: 'green'},
+    Dorian : {color: 'orange'},
+    Phrygian : {color: '#239dff'},
+    Lydian  : {color: 'orange'},
+    Mixolydian : {color: '#239dff'},
+    Aeolian  : {color: '#6c00ff'},
+    Locrian   : {color: 'cyan'},
+});
+
 
 
 var circleParameters = {
@@ -89,6 +102,41 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
 
         return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) == 0 && this.minor == selMinor;
         },
+
+        getRelativeMode : function(target) {
+            var delta = this.position - target.position;
+
+            while (delta < -6) 
+                delta += 12;
+            while (delta > 6)
+                delta -= 12;
+
+            if(this.minor)
+                return ModeDefinitions.None;
+
+            switch (delta) {
+            case 0:
+                return ModeDefinitions.Ionian;
+            case 1:
+                return ModeDefinitions.Mixolydian;
+            case 2:
+                return ModeDefinitions.Dorian;
+            case 3:
+                return ModeDefinitions.Aeolian;
+            case 4:
+                return ModeDefinitions.Phrygian;
+            case 5:
+                return ModeDefinitions.Locrian;
+            case -1:
+                return ModeDefinitions.Lydian;
+                
+                default:
+                    return ModeDefinitions.None;
+            }
+
+            return ModeDefinitions.None;
+        },
+
 
         //Returns chord degree in given tonality
         getDegree: function (tonality, isMinor) {
@@ -312,7 +360,7 @@ function setTonic(x, y, canvas,evtype) {
 
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
-    var rmax = Math.min(xc, yc);
+    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
 
     x -= xc;
     y -= yc;
@@ -337,11 +385,11 @@ function setAltTonic(x, y, canvas,evtype) {
 
     var xc = canvas.clientWidth / 2;
     var yc = canvas.clientHeight / 2;
-    var rmax = Math.min(xc, yc);
+    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
 
     x -= xc;
     y -= yc;
-    var r = Math.sqrt(x * x + y * y) / rmax;
+    var r = Math.sqrt(x * x + y * y)  / rmax;
     var angle = Math.atan2(y, x),
         tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
 
@@ -350,6 +398,30 @@ function setAltTonic(x, y, canvas,evtype) {
     circleParameters.isAltTonicMinor = r < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
 
     document.getElementById("alt-enabled").checked = true;
+
+    redraw();
+}
+
+function highlightModes() {
+
+    circleParameters.isTonicMinor = false;
+
+    var tonic = chordDefinitions.find(_t => _t.isTonicChord(circleParameters.selectedTonic,
+        circleParameters.isTonicMinor));
+
+    //chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor))
+
+    for (let chord of chordDefinitions) {
+        var relmode = chord.getRelativeMode(tonic);
+
+        if (relmode == ModeDefinitions.None) {
+            chord.highlight = ChordHighlightType.None;
+            continue;
+        }
+
+        chord.highlight = ChordHighlightType.Underline;
+        chord.highlightColor = relmode.color;
+    }
 
     redraw();
 }
@@ -367,7 +439,7 @@ function toggleSectorHighlight(x, y, cavnas,evtype) {
     x -= xc;
     y -= yc;
 
-    var rmax = Math.min(xc, yc);
+    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
     var r = Math.sqrt(x * x + y * y) / rmax;
 
     var angle = Math.atan2(y, x);
@@ -410,6 +482,7 @@ function redraw() {
 
     //Get parameters from UI
 
+    circleParameters.marginPx = document.getElementById("fill-margin").value;
     circleParameters.tonicColor = document.getElementById("tonic-color").value;
     circleParameters.altColor = document.getElementById("alt-color").value;
     circleParameters.tonicDegreeEnabled = document.getElementById("tonic-degree-enabled").checked;
@@ -452,7 +525,7 @@ function fillBackground(ctx,w,h) {
         ctx.fillRect(0, 0, w, h);
     else {
         ctx.beginPath();
-        ctx.arc(w / 2, h / 2, Math.min(w / 2, h / 2) - circleParameters.marginPx, 0, Math.PI * 2);
+        ctx.arc(w / 2, h / 2, Math.min(w / 2, h / 2), 0, Math.PI * 2);
         ctx.fill();
     }
 
@@ -689,6 +762,33 @@ function drawChord(chord,ctx,xc,yc,r) {
             ctx.arc(x,y, circlerad - offset,0,Math.PI*2);
             ctx.stroke();
         }        
+    }
+
+    if (chord.highlight == ChordHighlightType.Underline) {
+        
+            // Create gradient
+        var grd = ctx.createRadialGradient(xc, yc, bounds.offmin * r, xc, yc, bounds.offmax*r);
+            grd.addColorStop(0, chord.highlightColor);
+            grd.addColorStop(1, "rgba(255,255,255,0)");
+
+            ctx.globalAlpha = 0.45;
+            ctx.fillStyle = grd;
+
+        ctx.beginPath();
+
+        ctx.arc(xc,
+            yc,
+            bounds.offmax * r,
+            bounds.angle - circleParameters.sectorRadians / 2,
+            bounds.angle + circleParameters.sectorRadians / 2);
+
+        ctx.arc(xc,
+            yc,
+            bounds.offmin * r,
+            bounds.angle + circleParameters.sectorRadians / 2,
+            bounds.angle - circleParameters.sectorRadians / 2,true);
+
+        ctx.fill();
     }
 
     //Show chord degree
