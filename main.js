@@ -152,7 +152,7 @@ var chordDefinitions = [
   createChord(4, true, "C", ChordAlterationType.Sharp),
   createChord(5, true, "G", ChordAlterationType.Sharp),
   createChord(6, true, "E", ChordAlterationType.Flat),
-  createChord(7, true, "B", ChordAlterationType.Sharp),
+  createChord(7, true, "B", ChordAlterationType.Flat),
   createChord(8, true, "F", ChordAlterationType.None),
   createChord(9, true, "C", ChordAlterationType.None),
   createChord(10, true, "G", ChordAlterationType.None),
