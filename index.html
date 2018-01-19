@@ -45,6 +45,8 @@
             Показывать ступени?<br />
             Цвет
             <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
+
+            <button class="btn" style="font-size:80%" onclick="highlightModes()">Подсветить лады</button>
         </div>
 
         <label class="switch">
@@ -86,8 +88,8 @@
                 <input type="checkbox" id="chordmode-circle-double" onchange="setChordmode(this)">
                 <span class="slider">Двойной кружок</span>
             </label>
-
         </div>
+
 
         <label class="switch">
             <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
@@ -156,6 +158,11 @@
 
             <input type="checkbox" id="fill-circlefill" checked onchange="redraw()">
             Заливка - круг?<br /><br />
+
+            Отступ
+            <div class="rangeslidecontainer">
+                <input type="range" min="1" max="70" value="5" class="rangeslider" id="fill-margin" onchange="redraw()"><br />
+            </div>
 
             <input type="checkbox" id="fill-whiten" checked onchange="redraw()">
             Светленьким?<br /><br />
