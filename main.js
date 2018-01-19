@@ -103,13 +103,18 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
         return Math.min(Math.abs(tonic12 - pos12), 12 - Math.abs(tonic12 - pos12)) == 0 && this.minor == selMinor;
         },
 
-        getRelativeMode : function(target) {
+        getRelativePosition : function(target) {
             var delta = this.position - target.position;
 
-            while (delta < -6) 
+            while (delta < -6)
                 delta += 12;
             while (delta > 6)
                 delta -= 12;
+            return delta;
+        },
+
+        getRelativeMode : function(target) {
+            var delta = this.getRelativePosition(target);
 
             if(this.minor)
                 return ModeDefinitions.None;
@@ -423,6 +428,41 @@ function highlightModes() {
         chord.highlightColor = relmode.color;
     }
 
+    redraw();
+}
+
+function highlightHarmonicQuality() {
+
+    var tonic = chordDefinitions.find(_t => _t.isTonicChord(circleParameters.selectedTonic,
+        circleParameters.isTonicMinor));
+
+    //chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor))
+
+    for (let chord of chordDefinitions) {
+        var relmode = chord.getRelativePosition(tonic);
+
+        chord.highlight = ChordHighlightType.Underline;
+
+        if (relmode > -2 && relmode < 2) {
+            chord.highlightColor = 'green';
+        }
+        else if(relmode == 2)
+            chord.highlightColor = '#FF9900';
+        else if(relmode > 2 && relmode < 5)
+            chord.highlightColor = '#FFD600';
+        else if (relmode == 6)
+            chord.highlightColor = '#ffff0000';
+        else if (relmode >= 5)
+            chord.highlightColor = '#ffff0033';
+        else if(relmode == -2)
+            chord.highlightColor = '#0099FF';
+        else if(relmode < -2 && relmode > -5)
+            chord.highlightColor = '#3333CC';
+        else if(relmode <= -5)
+            chord.highlightColor = '#6c00ff33';
+        
+        }
+    
     redraw();
 }
 
