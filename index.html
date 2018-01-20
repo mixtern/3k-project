@@ -47,7 +47,9 @@
             <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
 
             <button class="btn" style="font-size:80%" onclick="highlightModes()">Подсветить лады</button>
-            <button class="btn" style="font-size:80%" onclick="highlightHarmonicQuality()">Подсветить гармонический окрас заимствований</button>
+
+            <input type="checkbox" id="tonic-highlight-harmonic-quality-mode" onchange="toggleHarmonicQualityMode(this)">
+            Режим подсветки гармонического окраса заимствований<br />            
         </div>
 
         <label class="switch">
