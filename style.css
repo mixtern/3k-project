@@ -13,7 +13,7 @@ div{
 div.container{
   margin-left: calc(50% - 400px);
   height: 750px;
-  width:800px;
+  width:900px;
   border:6px solid black;
 }
 img#clear{
@@ -37,7 +37,7 @@ canvas#temp{
 }
 
 div#settings{
-  width:186px;
+  width:286px;
   height:746px;
   float: right;
   border-left:4px solid black;
@@ -192,10 +192,27 @@ input[type="text"]{
 
 }
 
+
 .validation{
     display:none;
     color:red;
     font-weight:bold;
     margin:10px;
     font-size:20px;
+}
+
+
+.colorsample {
+    display: inline-block;
+    width: 20px;
+    margin: 2px;
+    background: black;
+    height: 20px;
+}
+
+div.legends > div {
+    font-size: 10pt;
+    background: #FFF3E0;
+    border: 1px solid gray;
+    padding: 10px;
 }

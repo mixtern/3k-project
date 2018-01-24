@@ -7,9 +7,10 @@
     <script src="labels.js"></script>
   <script src="arrows.js"></script>
   <script src="main.js"></script>
-  <script async="" src="https://cdn.rawgit.com/eligrey/FileSaver.js/b4a91866/FileSaver.js"></script>
-  <script async="" src="https://cdn.rawgit.com/eligrey/Blob.js/0cef2746414269b16834878a8abc52eb9d53e6bd/Blob.js"></script>
-  <script async="" src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+  <script src="tonal.js"></script>
+  <script src="FileSaver.js"></script>
+  <script src="Blob.js"></script>
+  <script src="canvas-toBlob.js"></script>
 </head>
 <body>
     
@@ -34,7 +35,7 @@
         <!-- MODE SELECTORS -->
         <label class="switch">
             <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
-            <span class="slider">ОСН ТОНАЛЬНОСТЬ</span>          
+            <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>          
         </label>
 
         <!-- mode-realted controls (display: toggled in JS) -->
@@ -44,12 +45,7 @@
             <input type="checkbox" id="tonic-degree-enabled" checked onchange="redraw()">
             Показывать ступени?<br />
             Цвет
-            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
-
-            <button class="btn" style="font-size:80%" onclick="highlightModes()">Подсветить лады</button>
-
-            <input type="checkbox" id="tonic-highlight-harmonic-quality-mode" onchange="toggleHarmonicQualityMode(this)">
-            Режим подсветки гармонического окраса заимствований<br />            
+            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">    
         </div>
 
         <label class="switch">
@@ -172,6 +168,72 @@
 
             
         </div>
+        
+        <!-- HARMONIC HIGHLIGHT SELECTORS -->
+        <label class="switch">
+            <input type="checkbox" id="mode-highlight" onchange="changemode(this)">
+            <span class="slider">ГАРМОНИЧЕСКИЙ ОКРАС</span>
+        </label>
+
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-highlight-controls">
+            
+            Как подсвечивать?
+            
+            <label class="switch">
+                <input type="checkbox" id="highlightmode-none" checked onchange="setHighlightMode(this)">
+                <span class="slider">Никак</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="highlightmode-modes" onchange="setHighlightMode(this)">
+                <span class="slider">Лады</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="highlightmode-linear" onchange="setHighlightMode(this)">
+                <span class="slider">Линейно</span>
+            </label>
+            <label class="switch">
+                <input type="checkbox" id="highlightmode-psychoaffective" onchange="setHighlightMode(this)">
+                <span class="slider">Психоаффективная модуляция</span>
+            </label>
+            
+            <!-- related legends -->
+            
+            <div class="legends">
+                <div id="highlightmode-modes-legend" style="display: none">
+                    Простая подсветка ладов:<br />
+
+                    <div class="colorsample" id="color-ionian" style="background: green"></div>ionian<br />
+                    <div class="colorsample" id="color-dorian" style="background: #FF1744"></div>dorian<br />
+                    <div class="colorsample" id="color-Phrygian" style="background: #FFEE58"></div>Phrygian<br />
+                    <div class="colorsample" id="color-Lydian" style="background: orange"></div>Lydian<br />
+                    <div class="colorsample" id="color-Mixolydian" style="background: #239dff"></div>Mixolydian<br />
+                    <div class="colorsample" id="color-Aeolian" style="background: #6c00ff"></div>Aeolian<br />
+                    <div class="colorsample" id="color-Locrian" style="background: cyan"></div>Locrian<br />
+
+
+                </div>
+
+                <div id="highlightmode-linear-legend" style="display: none">
+                    Линейная подсветка для оценки характера заимствования аккорда в выбранную тональность. По часовой по кругу — яркие, против - холодные, и чем дальше от основной тональности, тем слабее связь, что выражается в ширине заливки
+                </div>
+
+
+                <div id="highlightmode-psychoaffective-legend" style="display: none;font-size: 10pt">
+                    Субъективное качество модуляций согласно работе <small>[Корсакова, W.J. Dowling, 2014] DOI: 10.1037/pmu0000029</small><br />
+                    <b>
+                        Оранжевый цвет обозначает модуляцию как «теплую/счастливую» и чем насыщеннее сам цвет - тем «теплее» модуляция.
+                        Синий это наоборот, когда субъективно переход ощущался «холодным-грустным».
+                        <br /><br />
+                        Ширина заливки - то, как слушатели оценивают «тяготение» модуляции - широкая заливка значит сильное-устойчивое, узкая - слабое-неустойчивое
+                    </b>
+
+                </div>
+            </div>
+
+        </div>
+
+
         
         <button class="btn" onclick="downloadImage()">↓Download↓</button>
 
