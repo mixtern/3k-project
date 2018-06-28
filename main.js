@@ -48,8 +48,8 @@ var ModeDefinitions = Object.freeze({
 var circleParameters = {
     marginPx: 5,
     outerRadiusPercents : 1,
-    majorCircleThicknessPercents : 0.25,
-    minorCircleThicknessPercents  : 0.25,
+    majorCircleThicknessPercents : 0.3,
+    minorCircleThicknessPercents  : 0.3,
 
     inactiveColor : function(){ 
         switch(this.renderMode)
@@ -589,6 +589,13 @@ function fillBackground(ctx,w,h) {
 
 }
 
+function lerp(t, c1, c2) {
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+
+    return c1*t + c2*(1-t);
+}
+
 
 function lerpcolor(t, c1, c2) {
     
@@ -764,6 +771,8 @@ function getChordBoundsFromDefinition(chord) {
 
     return {
         angle: angle2pi,
+        startAngle: angle2pi - circleParameters.sectorRadians/2,
+        endAngle: angle2pi + circleParameters.sectorRadians/2,
         offmax: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents : circleParameters.outerRadiusPercents,
         offmin: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents : circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents,
     };
@@ -890,15 +899,71 @@ function drawChord(chord,ctx,xc,yc,r) {
 
         ctx.arc(xc,
             yc,
-            rmin,
+            rmax,
             bounds.angle + circleParameters.sectorRadians / 2,
             bounds.angle - circleParameters.sectorRadians / 2,true);
 
         ctx.fill();
     }
 
-    //Show chord degree
-    if (circleParameters.tonicDegreeEnabled) {
+    //Show chord degree (alt)
+    if (circleParameters.tonicDegreeEnabled && circleParameters.tonicShown && 
+        circleParameters.renderMode == UiRenderingModeMode.Bold &&
+        chord.active && 
+        chord.inTonic(circleParameters.selectedTonic)) {
+
+        var degree = chord.getDegree(circleParameters.selectedTonic, circleParameters.isTonicMinor);
+
+        ctx.save();
+
+        //Create clipping path
+
+        ctx.beginPath();
+
+        ctx.arc(xc,
+            yc,
+            bounds.offmax * r,
+            bounds.angle - circleParameters.sectorRadians / 2,
+            bounds.angle + circleParameters.sectorRadians / 2);
+
+        ctx.arc(xc,
+            yc,
+            bounds.offmin * r,
+            bounds.angle + circleParameters.sectorRadians / 2,
+            bounds.angle - circleParameters.sectorRadians / 2,true);
+
+        ctx.clip();      
+
+        ctx.globalAlpha = 0.2;
+        ctx.fillStyle = circleParameters.tonicColor;
+
+        ctx.beginPath();
+        ctx.arc(
+            xc + (r*bounds.offmax) * Math.cos(bounds.startAngle),
+            yc + (r*bounds.offmax) * Math.sin(bounds.startAngle), 
+            r*0.11  ,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+
+        var angle = lerp(0.9,bounds.startAngle,bounds.endAngle);
+        var rx = r * lerp(0.85,bounds.offmax,bounds.offmin);
+
+        
+        ctx.fillStyle = "white"
+        ctx.fillText(degree, 
+            xc + rx * Math.cos(angle), 
+            yc + rx * Math.sin(angle)+9);
+    
+        ctx.restore();
+    }
+
+
+    //Show chord degree (standard mode)
+    if (circleParameters.tonicDegreeEnabled && circleParameters.renderMode == UiRenderingModeMode.ClassicThin) {
 
         ctx.globalAlpha = 0.4;
 
