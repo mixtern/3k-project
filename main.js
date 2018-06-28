@@ -26,6 +26,11 @@ var HarmonicQualityMode = Object.freeze({
     Modes: 3,
 });
 
+var UiRenderingModeMode = Object.freeze({
+    ClassicThin: 0,
+    Bold: 1,    //Small screen-friendly version
+});
+
 
 var ModeDefinitions = Object.freeze({
     None: {color: ''},
@@ -46,7 +51,19 @@ var circleParameters = {
     majorCircleThicknessPercents : 0.25,
     minorCircleThicknessPercents  : 0.25,
 
-    inactiveColor : "#aaaaaa",
+    inactiveColor : function(){ 
+        switch(this.renderMode)
+        {
+            case UiRenderingModeMode.Bold:
+            return "#555";
+            case UiRenderingModeMode.ClassicThin:
+            return "#aaaaaa";
+        }
+        this.renderMode 
+    },
+
+
+
     activeColor: "black",
     highlightColor: "orange",
 
@@ -60,6 +77,7 @@ var circleParameters = {
     altTonic: 3,
     tonicShown : true,
     altTonicShown : false,
+    renderMode: UiRenderingModeMode.ClassicThin,
     tonicHighlightHarmonicQualityMode : HarmonicQualityMode.None,
     tonicDegreeEnabled: true,
     tonicColor: "red",
@@ -122,6 +140,47 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
             while (delta > 6)
                 delta -= 12;
             return delta;
+        },
+
+
+
+        getFont : function(){
+
+            var fontSelector = {
+                minorFont : function(chord){
+
+                    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
+                    {
+                        if(circleParameters.renderMode == UiRenderingModeMode.Bold)
+                            return "bold 30px Arial";
+
+                        return "bold 20px Arial";
+                    }
+
+                    if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
+                        return "bold 25px Arial";
+                                    
+                    return "20px Arial";
+                },
+
+                majorFont : function(chord){
+
+                    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
+                    {    
+                        if(circleParameters.renderMode == UiRenderingModeMode.Bold)
+                            return "bold 35px Arial";
+
+                        return "bold 30px Arial";
+                    }
+
+                    if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
+                        return "bold 33px Arial";
+                                    
+                    return "30px Arial";
+                },
+            }          
+            
+            return this.minor ? fontSelector.minorFont(this) : fontSelector.majorFont(this);
         },
 
         getRelativeMode : function(target) {
@@ -265,7 +324,7 @@ window.addEventListener('load', function ()
  function (event) {
      activeModeFunction(0, 0, main,'keyup',event.keyCode);
      return false;
- },false);
+ },false);   
 
     redraw();
 });
@@ -486,6 +545,7 @@ function redraw() {
     circleParameters.tonicDegreeEnabled = document.getElementById("tonic-degree-enabled").checked;
     circleParameters.tonicShown = document.getElementById("tonic-enabled").checked;
     circleParameters.altTonicShown = document.getElementById("alt-enabled").checked;
+    circleParameters.renderMode = document.querySelector("#ui-bold").checked ? UiRenderingModeMode.Bold : UiRenderingModeMode.ClassicThin;
 
     //Draw cicrcle
     fillBackground(main.ctx, main.clientWidth, main.clientHeight);
@@ -595,8 +655,8 @@ function drawCo5(ctx, witdh, height) {
     
     //Draw outer & inner circles
 
-    ctx.strokeStyle = circleParameters.inactiveColor;
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = circleParameters.inactiveColor();
+    ctx.lineWidth = circleParameters.renderMode == UiRenderingModeMode.ClassicThin ? 1 : 2;
     ctx.beginPath();
     ctx.arc(xc, yc, r, 0, Math.PI * 2);
     ctx.stroke();
@@ -631,7 +691,7 @@ function drawCo5(ctx, witdh, height) {
         var angles = _getTonicAngles(circleParameters.altTonic);
 
         ctx.strokeStyle = circleParameters.altColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = circleParameters.renderMode == UiRenderingModeMode.ClassicThin ? 3 : 7;
         ctx.beginPath();
 
         ctx.moveTo(xc + rmin * Math.cos(angles.amin), yc + rmin * Math.sin(angles.amin));
@@ -655,7 +715,7 @@ function drawCo5(ctx, witdh, height) {
         var angles = _getTonicAngles(circleParameters.selectedTonic);
 
         ctx.strokeStyle = circleParameters.tonicColor;
-        ctx.lineWidth = 3;
+        ctx.lineWidth = circleParameters.renderMode == UiRenderingModeMode.ClassicThin ? 3 : 7;
         ctx.beginPath();
 
         ctx.moveTo(xc + rmin * Math.cos(angles.amin), yc + rmin * Math.sin(angles.amin));
@@ -862,19 +922,16 @@ function drawChord(chord,ctx,xc,yc,r) {
         ctx.restore();
     }
 
-    ctx.font = chord.minor ? "20px Arial" : "30px Arial";
-    ctx.fillStyle = chord.active ? circleParameters.activeColor : circleParameters.inactiveColor;
+    ctx.fillStyle = chord.active ? circleParameters.activeColor : circleParameters.inactiveColor();
+    ctx.font = chord.getFont();
 
     //Highlight tonic chord
 
-    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) {
+    if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor))
         ctx.fillStyle = circleParameters.tonicColor;
-        ctx.font = chord.minor ?"bold 20px Arial":"bold 30px Arial";
-    } else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic, circleParameters.isAltTonicMinor)) {
+    else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic, circleParameters.isAltTonicMinor))
         ctx.fillStyle = circleParameters.altColor;
-        ctx.font = chord.minor ?"bold 20px Arial":"bold 30px Arial";
-    }
-
+    
     ctx.globalAlpha = origAlpha;
 
     //Calculate actual chord text to draw
