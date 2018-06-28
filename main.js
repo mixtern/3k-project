@@ -663,7 +663,7 @@ function drawCo5(ctx, witdh, height) {
     //Draw outer & inner circles
 
     ctx.strokeStyle = circleParameters.inactiveColor();
-    ctx.lineWidth = circleParameters.renderMode == UiRenderingModeMode.ClassicThin ? 1 : 2;
+    ctx.lineWidth = circleParameters.renderMode == UiRenderingModeMode.ClassicThin ? 1 : 4;
     ctx.beginPath();
     ctx.arc(xc, yc, r, 0, Math.PI * 2);
     ctx.stroke();
@@ -673,6 +673,8 @@ function drawCo5(ctx, witdh, height) {
     ctx.beginPath();
     ctx.arc(xc, yc, rstart, 0, Math.PI * 2);
     ctx.stroke();
+
+    ctx.lineWidth = 1;
 
     //Draw separators
     
