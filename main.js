@@ -901,7 +901,7 @@ function drawChord(chord,ctx,xc,yc,r) {
 
         ctx.arc(xc,
             yc,
-            rmax,
+            rmin,
             bounds.angle + circleParameters.sectorRadians / 2,
             bounds.angle - circleParameters.sectorRadians / 2,true);
 
