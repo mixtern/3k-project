@@ -11,24 +11,14 @@
   <script src="FileSaver.js"></script>
   <script src="Blob.js"></script>
   <script src="canvas-toBlob.js"></script>
+
 </head>
 <body>
-    
-    <div id="modalWindow" class="modal">
-
-        <!-- Modal content -->
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <span id="modal-text"></span>
-        </div>
-
-    </div>
 
   <div class="container">
     <div id="kkk">
       <canvas id="main" height="600" width="600"></canvas>
     </div>
-
 
     <div id="settings">
 
@@ -134,7 +124,7 @@
             <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
             Размер
             <div class="rangeslidecontainer">
-                <input type="range" min="12" max="35" value="25" class="rangeslider" id="label-size"><br />
+                <input type="range" min="12" max="45" value="25" class="rangeslider" id="label-size"><br />
             </div>
 
             <input type="text" id="label-text" placeholder="Сюда текст">
@@ -151,7 +141,7 @@
 
         <label class="switch">
             <input type="checkbox" id="mode-fill" onchange="changemode(this)">
-            <span class="slider">ФОН</span>
+            <span class="slider">ВНЕШНИЙ ВИД</span>
         </label>
 
         <!-- mode-realted controls (display: toggled in JS) -->
@@ -164,12 +154,14 @@
 
             Отступ
             <div class="rangeslidecontainer">
-                <input type="range" min="1" max="70" value="5" class="rangeslider" id="fill-margin" onchange="redraw()"><br />
+                <input type="range" min="1" max="70" value="10" class="rangeslider" id="fill-margin" onchange="redraw()"><br />
             </div>
 
             <input type="checkbox" id="fill-whiten" checked onchange="redraw()">
-            Светленьким?<br /><br />
+            Светлый фон?<br /><br />
 
+            <input type="checkbox" id="ui-bold" checked onchange="redraw()">
+            Жирная версия?<br /><br />
             
         </div>
         
@@ -238,6 +230,7 @@
         </div>
 
 
+        
         
         <button class="btn" onclick="downloadImage()">↓Download↓</button>
 
