@@ -17,7 +17,7 @@
 
   <div class="container">
     <div id="kkk">
-      <canvas id="main" height="600" width="600"></canvas>
+      <canvas id="main"></canvas>
     </div>
 
     <div id="settings">
@@ -162,6 +162,10 @@
 
             <input type="checkbox" id="ui-bold" checked onchange="redraw()">
             Жирная версия?<br /><br />
+
+            Ширина картинки в пикселях<br /><br />
+            <input type="text" id="settings-width" placeholder="Ширина картинки в пикселях" onchange="redraw()">
+            <button class="btn" onclick="redraw()">Change!</button>
             
         </div>
         
