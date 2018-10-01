@@ -62,7 +62,10 @@ var circleParameters = {
         this.renderMode 
     },
 
-
+    originalWidth :  600,
+    scalingFactor: function() {
+        return document.querySelector("#main").width / this.originalWidth;
+    },
 
     activeColor: "black",
     highlightColor: "orange",
@@ -149,18 +152,20 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
             var fontSelector = {
                 minorFont : function(chord){
 
+
+
                     if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
                     {
                         if(circleParameters.renderMode == UiRenderingModeMode.Bold)
-                            return "bold 30px Arial";
+                            return "bold "+(30*circleParameters.scalingFactor())+"px Arial";
 
-                        return "bold 20px Arial";
+                        return "bold "+(20*circleParameters.scalingFactor())+"px Arial";
                     }
 
                     if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
-                        return "bold 25px Arial";
+                        return "bold "+(25*circleParameters.scalingFactor())+"px Arial";
                                     
-                    return "20px Arial";
+                    return (20*circleParameters.scalingFactor())+"px Arial";
                 },
 
                 majorFont : function(chord){
@@ -168,15 +173,15 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
                     if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
                     {    
                         if(circleParameters.renderMode == UiRenderingModeMode.Bold)
-                            return "bold 35px Arial";
+                            return "bold "+(35*circleParameters.scalingFactor())+"px Arial";
 
-                        return "bold 30px Arial";
+                        return "bold "+(30*circleParameters.scalingFactor())+"px Arial";
                     }
 
                     if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
-                        return "bold 33px Arial";
+                        return "bold "+(33*circleParameters.scalingFactor())+"px Arial";
                                     
-                    return "30px Arial";
+                    return (30*circleParameters.scalingFactor())+"px Arial";
                 },
             }          
             
@@ -537,8 +542,9 @@ function toggleSectorHighlight(x, y, cavnas,evtype) {
  */
 function redraw() {
 
-    //Get parameters from UI
+    setCanvasWidthFromUi();
 
+    //Get parameters from UI
     circleParameters.marginPx = document.getElementById("fill-margin").value;
     circleParameters.tonicColor = document.getElementById("tonic-color").value;
     circleParameters.altColor = document.getElementById("alt-color").value;
@@ -554,6 +560,28 @@ function redraw() {
     drawLabels(main.ctx, main.clientWidth, main.clientHeight);
 }
 
+function setCanvasWidthFromUi()
+{
+    var co5widthToHeightRatio = 1;
+
+    if(document.querySelector("#settings-width").value.length < 1)
+    {
+        if(localStorage["co5width"])
+            document.querySelector("#settings-width").value =localStorage["co5width"];
+        else
+            document.querySelector("#settings-width").value = circleParameters.originalWidth;
+    }
+
+    if(document.querySelector("#settings-width").value < 200)
+        document.querySelector("#settings-width").value = 200;
+    if(document.querySelector("#settings-width").value > 1000)
+        document.querySelector("#settings-width").value = 1000;
+
+    localStorage["co5width"] =document.querySelector("#settings-width").value;
+
+    document.querySelector("#main").width = document.querySelector("#settings-width").value;
+    document.querySelector("#main").height = document.querySelector("#settings-width").value * co5widthToHeightRatio;
+}
 
 function fillBackground(ctx,w,h) {
 
