@@ -572,15 +572,21 @@ function setCanvasWidthFromUi()
             document.querySelector("#settings-width").value = circleParameters.originalWidth;
     }
 
-    if(document.querySelector("#settings-width").value < 200)
-        document.querySelector("#settings-width").value = 200;
-    if(document.querySelector("#settings-width").value > 1000)
-        document.querySelector("#settings-width").value = 1000;
+    var width = parseInt(document.querySelector("#settings-width").value);
 
-    localStorage["co5width"] =document.querySelector("#settings-width").value;
+    if(isNaN(width))
+        width = 200;
+    if(width < 200)
+        width = 200;
+    if(width > 1000)
+        width = 1000;
 
-    document.querySelector("#main").width = document.querySelector("#settings-width").value;
-    document.querySelector("#main").height = document.querySelector("#settings-width").value * co5widthToHeightRatio;
+    localStorage["co5width"] =width
+
+    document.querySelector("#settings-width").value = width;
+
+    document.querySelector("#main").width = width;
+    document.querySelector("#main").height = width * co5widthToHeightRatio;
 }
 
 function fillBackground(ctx,w,h) {
