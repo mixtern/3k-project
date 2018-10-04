@@ -96,18 +96,6 @@ function setKeyboardVisibility(source) {
     if (!source.checked)
         return;
 
-    keys[0].highlight = ChordHighlightType.Fog;
-    keys[0].highlightColor = '#fea';
-
-    keys[6].highlight = ChordHighlightType.Sector;
-    keys[6].highlightColor = 'red';
-
-    keys[9].highlight = ChordHighlightType.Sector;
-    keys[9].highlightColor = 'cyan';
-
-    keys[13].highlight = ChordHighlightType.Fog;
-    keys[13].highlightColor = '#fea';
-
     //Install handlers for keyboard mode
     availableModeFunctions['keyboard-canvas'] =
     {
