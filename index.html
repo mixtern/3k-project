@@ -1,41 +1,40 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Кварто-Квинтовый круг</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Кварто-Квинтовый круг</title>
+    <link rel="stylesheet" href="style.css">
     <script src="labels.js"></script>
-  <script src="arrows.js"></script>
-  <script src="main.js"></script>
-  <script src="tonal.js"></script>
-  <script src="FileSaver.js"></script>
-  <script src="Blob.js"></script>
-  <script src="canvas-toBlob.js"></script>
+    <script src="arrows.js"></script>
+    <script src="main.js"></script>
+    <script src="keyboard.js"></script>
+    <script src="tonal.js"></script>
+    <script src="FileSaver.js"></script>
+    <script src="Blob.js"></script>
+    <script src="canvas-toBlob.js"></script>
 
 </head>
+
 <body>
 
-  <div class="container">
-    <div id="kkk">
-      <canvas id="main"></canvas>
-    </div>
-
+    <!-- settings fixed menu -->
     <div id="settings">
 
         <!-- MODE SELECTORS -->
         <label class="switch">
             <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
-            <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>          
+            <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>
         </label>
 
         <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-basetone-controls" style="display:block">
             <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
-            Показывать сектор?<br/>
+            Показывать сектор?<br />
             <input type="checkbox" id="tonic-degree-enabled" checked onchange="redraw()">
             Показывать ступени?<br />
             Цвет
-            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">    
+            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
         </div>
 
         <label class="switch">
@@ -53,14 +52,14 @@
 
         <label class="switch">
             <input type="checkbox" id="mode-chords" onchange="changemode(this)">
-            <span class="slider">АККОРДЫ</span>
+            <span class="slider">ПОДСВЕТКА</span>
         </label>
 
         <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-chords-controls" style="display: none">
             Цвет
-            <input type="color" id="chord-color" value="#FFA726" onchange="redraw()"><br/>
-            Тип подсветки аккорда
+            <input type="color" id="chord-color" value="#FFA726" onchange="redraw()"><br />
+            Тип подсветки аккорда / клавиши
             <label class="switch">
                 <input type="checkbox" id="chordmode-sector" checked onchange="setChordmode(this)">
                 <span class="slider">Сектор</span>
@@ -129,7 +128,7 @@
 
             <input type="text" id="label-text" placeholder="Сюда текст">
             <div class="validation" id="label-text-validation">Нужно вписать сюда какой-то текст!</div>
-            
+
             <span class="hint">
                 Hint: Shift - для поворота текста, Ctrl/Cmd - на произвольный угол
             </span>
@@ -166,9 +165,23 @@
             Ширина картинки в пикселях<br /><br />
             <input type="text" id="settings-width" placeholder="Ширина картинки в пикселях" onchange="redraw()">
             <button class="btn" onclick="redraw()">Change!</button>
-            
+
         </div>
         
+        <!-- AUX MIDI KEYBOARD -->
+        <label class="switch">
+            <input type="checkbox" id="mode-keyboard" onchange="changemode(this)">
+            <span class="slider">КЛАВИШИ</span>
+        </label>
+
+        <!-- mode-realted controls (display: toggled in JS) -->
+        <div class="mode-dependent" id="mode-keyboard-controls">
+            <label class="switch">
+                    <input type="checkbox" id="keyboard-show" onchange="setKeyboardVisibility(this)">
+                    <span class="slider">Показать</span>
+            </label>
+        </div>
+
         <!-- HARMONIC HIGHLIGHT SELECTORS -->
         <label class="switch">
             <input type="checkbox" id="mode-highlight" onchange="changemode(this)">
@@ -177,9 +190,9 @@
 
         <!-- mode-realted controls (display: toggled in JS) -->
         <div class="mode-dependent" id="mode-highlight-controls">
-            
+
             Как подсвечивать?
-            
+
             <label class="switch">
                 <input type="checkbox" id="highlightmode-none" checked onchange="setHighlightMode(this)">
                 <span class="slider">Никак</span>
@@ -196,9 +209,9 @@
                 <input type="checkbox" id="highlightmode-psychoaffective" onchange="setHighlightMode(this)">
                 <span class="slider">Психоаффективная модуляция</span>
             </label>
-            
+
             <!-- related legends -->
-            
+
             <div class="legends">
                 <div id="highlightmode-modes-legend" style="display: none">
                     Простая подсветка ладов:<br />
@@ -215,17 +228,22 @@
                 </div>
 
                 <div id="highlightmode-linear-legend" style="display: none">
-                    Линейная подсветка для оценки характера заимствования аккорда в выбранную тональность. По часовой по кругу — яркие, против - холодные, и чем дальше от основной тональности, тем слабее связь, что выражается в ширине заливки
+                    Линейная подсветка для оценки характера заимствования аккорда в выбранную тональность. По часовой
+                    по кругу — яркие, против - холодные, и чем дальше от основной тональности, тем слабее связь, что
+                    выражается в ширине заливки
                 </div>
 
 
                 <div id="highlightmode-psychoaffective-legend" style="display: none;font-size: 10pt">
-                    Субъективное качество модуляций согласно работе <small>[Корсакова, W.J. Dowling, 2014] DOI: 10.1037/pmu0000029</small><br />
+                    Субъективное качество модуляций согласно работе <small>[Корсакова, W.J. Dowling, 2014] DOI:
+                        10.1037/pmu0000029</small><br />
                     <b>
-                        Оранжевый цвет обозначает модуляцию как «теплую/счастливую» и чем насыщеннее сам цвет - тем «теплее» модуляция.
+                        Оранжевый цвет обозначает модуляцию как «теплую/счастливую» и чем насыщеннее сам цвет - тем
+                        «теплее» модуляция.
                         Синий это наоборот, когда субъективно переход ощущался «холодным-грустным».
                         <br /><br />
-                        Ширина заливки - то, как слушатели оценивают «тяготение» модуляции - широкая заливка значит сильное-устойчивое, узкая - слабое-неустойчивое
+                        Ширина заливки - то, как слушатели оценивают «тяготение» модуляции - широкая заливка значит
+                        сильное-устойчивое, узкая - слабое-неустойчивое
                     </b>
 
                 </div>
@@ -233,17 +251,20 @@
 
         </div>
 
-
-        
-        
         <button class="btn" onclick="downloadImage()">↓Download↓</button>
-
-
-
-
     </div>
-  </div>
 
+
+    <!-- circle of fifths -->
+    <div id="circle_of_fifths" class="canvas-container">
+        <canvas id="main"></canvas>
+    </div>
+
+    <!-- midi-like keyboard -->
+    <div id="keyboard" class="canvas-container" style="display:none">
+        <canvas id="keyboard-canvas" height="500"></canvas>
+    </div>
 
 </body>
+
 </html>
