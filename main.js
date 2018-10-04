@@ -288,48 +288,58 @@ var chordDefinitions = [
 ];
 
 
-window.addEventListener('load', function () 
+function marshalModeAction(x, y, canvas,evtype) {
+    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype);
+}
+
+function addModeListeners(source)
 {
-    main = document.getElementById('main');
-    main.ctx = main.getContext('2d');
-
+    source.ctx = source.getContext('2d');
    
-    main.addEventListener('mousedown',
+    source.addEventListener('mousedown',
     function (event) {
-        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mousedown');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousedown');
         return false;
     },false);
 
-    main.addEventListener('mousemove',
+    source.addEventListener('mousemove',
     function (event) {
-        activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mousemove');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousemove');
         return false;
     },false);
 
-    main.addEventListener('mouseup',
+    source.addEventListener('mouseup',
      function (event) {
-         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseup');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseup');
          return false;
      },false);
 
-    main.addEventListener('mouseleave',
+    source.addEventListener('mouseleave',
      function (event) {
-         activeModeFunction(event.pageX - main.offsetLeft, event.pageY - main.offsetTop, main,'mouseleave');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseleave');
          return false;
      },false);
 
 
     window.addEventListener('keydown',
      function (event) {
-         activeModeFunction(0, 0, main,'keydown',event.keyCode);
+        marshalModeAction(0, 0, source,'keydown',event.keyCode);
          return false;
      },false);
 
     window.addEventListener('keyup',
  function (event) {
-     activeModeFunction(0, 0, main,'keyup',event.keyCode);
+    marshalModeAction(0, 0, source,'keyup',event.keyCode);
      return false;
  },false);   
+
+ return source;
+}
+
+window.addEventListener('load', function () 
+{
+    main = addModeListeners(document.getElementById('main'));
+    keyboard = addModeListeners(document.getElementById('keyboard-canvas'));
 
     redraw();
 });
@@ -339,6 +349,14 @@ window.addEventListener('load', function ()
  * @returns {} 
  */
 function downloadImage() {
+    if(document.querySelector("#keyboard").style.display != 'none')
+    {
+        keyboard.toBlob(function(blob) {
+            saveAs(blob, "KEYS_"+Date.now()+".png");
+        }, "image/png");
+        return;
+    }
+
     main.toBlob(function(blob) {
         saveAs(blob, "COF_"+Date.now()+".png");
     }, "image/png");
@@ -350,18 +368,33 @@ function downloadImage() {
 
 //
 
-var activeModeFunction = setTonic;
+var activeModeName = 'mode-basetone';
 var activeChordHighlight = ChordHighlightType.Sector;
 var activeChordHighlightId = 'chordmode-sector';
 
 var availableModeFunctions = {
-    'mode-basetone':setTonic,
-    'mode-alttone':setAltTonic,
-    'mode-chords':toggleSectorHighlight,
-    'mode-arrows':createArrowsHandler,
-    'mode-labels':createLabelsHandler,
-    'mode-fill':setTonic,
-    'mode-highlight':setTonic,
+
+    'main': {
+        'mode-basetone': setTonic,
+        'mode-alttone': setAltTonic,
+        'mode-chords': toggleSectorHighlight,
+        'mode-arrows': createArrowsHandler,
+        'mode-labels': createLabelsHandler,
+        'mode-fill': setTonic,
+        'mode-highlight': setTonic,
+        'mode-keyboard' : function (x, y, canvas,evtype) {}
+    },
+
+    'keyboard-canvas': {
+        'mode-basetone': function (x, y, canvas,evtype) {},
+        'mode-alttone': function (x, y, canvas,evtype) {},
+        'mode-chords': function (x, y, canvas,evtype) {},
+        'mode-arrows': function (x, y, canvas,evtype) {},
+        'mode-labels': function (x, y, canvas,evtype) {},
+        'mode-fill': function (x, y, canvas,evtype) {},
+        'mode-highlight': function (x, y, canvas,evtype) {},
+        'mode-keyboard' : function (x, y, canvas,evtype) {}
+    },
 };
 
 var availableChordHighlights = {
@@ -412,7 +445,7 @@ function changemode(source) {
                 
         }
 
-        activeModeFunction = availableModeFunctions[source.id];
+        activeModeName = source.id;
     });
 }
 
