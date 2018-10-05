@@ -2,6 +2,24 @@
 Keyboard drawing
 */
 
+
+window.addEventListener('load', function () 
+{
+    document.getElementById('mode-keyboard').addEventListener('change',
+    function (event) {
+
+        if (document.getElementById('mode-keyboard').checked) {
+
+            document.getElementById('keyboard-show').checked = true;
+
+            setKeyboardVisibility(document.getElementById('keyboard-show'));
+        }
+        return false;
+    },false);
+
+});
+
+
 var keyboardParameters = {
     keyWidth: 0.6,
     blackKeyWidth: 0.45,
