@@ -64,7 +64,7 @@ var circleParameters = {
 
     originalWidth :  600,
     scalingFactor: function() {
-        return document.querySelector("#main").width / this.originalWidth;
+        return document.querySelector("#circleOfFifths").width / this.originalWidth;
     },
 
     activeColor: "black",
@@ -288,8 +288,8 @@ var chordDefinitions = [
 ];
 
 
-function marshalModeAction(x, y, canvas,evtype) {
-    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype);
+function marshalModeAction(x, y, canvas,evtype, code) {
+    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
 }
 
 function addModeListeners(source)
@@ -338,7 +338,7 @@ function addModeListeners(source)
 
 window.addEventListener('load', function () 
 {
-    main = addModeListeners(document.getElementById('main'));
+    main = addModeListeners(document.getElementById('circleOfFifths'));
     keyboard = addModeListeners(document.getElementById('keyboard-canvas'));
 
     redraw();
@@ -374,7 +374,7 @@ var activeChordHighlightId = 'chordmode-sector';
 
 var availableModeFunctions = {
 
-    'main': {
+    'circleOfFifths': {
         'mode-basetone': setTonic,
         'mode-alttone': setAltTonic,
         'mode-chords': toggleSectorHighlight,
@@ -403,6 +403,18 @@ var availableChordHighlights = {
     'chordmode-circle': ChordHighlightType.Circle,
     'chordmode-circle-double': ChordHighlightType.DoubleCircle,
 };
+
+function setCanvasVisibility(containerId,isVisible){
+
+    document.querySelector('#'+containerId).style.display= isVisible ? 'flex' : 'none';
+
+    var canvasId = document.querySelector('#'+containerId+' > canvas');
+    var dependent = document.querySelectorAll('.canvas-dependent-'+canvasId.id);
+
+    for(let item of dependent)
+        item.style.display = isVisible ? 'inline-block' : 'none';
+
+}
 
 function _restrictToOneCheckbox(needle, source, iterator) {
 
@@ -618,8 +630,8 @@ function setCanvasWidthFromUi()
 
     document.querySelector("#settings-width").value = width;
 
-    document.querySelector("#main").width = width;
-    document.querySelector("#main").height = width * co5widthToHeightRatio;
+    document.querySelector("#circleOfFifths").width = width;
+    document.querySelector("#circleOfFifths").height = width * co5widthToHeightRatio;
 }
 
 function fillBackground(ctx,w,h) {
