@@ -22,7 +22,7 @@
     <div id="settings">
 
         <!-- MODE SELECTORS -->
-        <label class="switch">
+        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
             <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
             <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>
         </label>
@@ -37,7 +37,7 @@
             <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
         </div>
 
-        <label class="switch">
+        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
             <input type="checkbox" id="mode-alttone" onchange="changemode(this)">
             <span class="slider">ДОП ТОНАЛЬНОСТЬ</span>
         </label>
@@ -79,7 +79,7 @@
         </div>
 
 
-        <label class="switch">
+        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
             <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
             <span class="slider">СТРЕЛКИ</span>
         </label>
@@ -138,7 +138,7 @@
 
         </div>
 
-        <label class="switch">
+        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
             <input type="checkbox" id="mode-fill" onchange="changemode(this)">
             <span class="slider">ВНЕШНИЙ ВИД</span>
         </label>
@@ -183,7 +183,7 @@
         </div>
 
         <!-- HARMONIC HIGHLIGHT SELECTORS -->
-        <label class="switch">
+        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
             <input type="checkbox" id="mode-highlight" onchange="changemode(this)">
             <span class="slider">ГАРМОНИЧЕСКИЙ ОКРАС</span>
         </label>
@@ -257,7 +257,7 @@
 
     <!-- circle of fifths -->
     <div id="circle_of_fifths" class="canvas-container">
-        <canvas id="main"></canvas>
+        <canvas id="circleOfFifths"></canvas>
     </div>
 
     <!-- midi-like keyboard -->

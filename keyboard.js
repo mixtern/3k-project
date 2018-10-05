@@ -89,12 +89,15 @@ var keys = [
 ];
 
 function setKeyboardVisibility(source) {
-    document.querySelector("#keyboard").style.display = source.checked ? 'flex' : 'none';
 
-    document.querySelector("#circle_of_fifths").style.display = source.checked ? 'none' : 'flex';
+    setCanvasVisibility('keyboard',source.checked);
+    setCanvasVisibility('circle_of_fifths',!source.checked);
 
     if (!source.checked)
+    {
+        redraw();
         return;
+    }
 
     //Install handlers for keyboard mode
     availableModeFunctions['keyboard-canvas'] =
