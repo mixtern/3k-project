@@ -397,12 +397,23 @@ var availableModeFunctions = {
     },
 };
 
+var avaliableContainerIds = ['circle_of_fifths'];
+
 var availableChordHighlights = {
     'chordmode-sector': ChordHighlightType.Sector,
     'chordmode-fog': ChordHighlightType.Fog,
     'chordmode-circle': ChordHighlightType.Circle,
     'chordmode-circle-double': ChordHighlightType.DoubleCircle,
 };
+
+function showCanvasAccordingToMode(mode){
+
+    if(mode == null)
+        mode = avaliableContainerIds[0];
+
+    for(var i=0;i!=avaliableContainerIds.length;++i)
+        setCanvasVisibility(avaliableContainerIds[i], avaliableContainerIds[i] == mode);          
+}
 
 function setCanvasVisibility(containerId,isVisible){
 

@@ -17,6 +17,8 @@ window.addEventListener('load', function ()
         return false;
     },false);
 
+    avaliableContainerIds.push('keyboard');
+
 });
 
 
@@ -108,8 +110,7 @@ var keys = [
 
 function setKeyboardVisibility(source) {
 
-    setCanvasVisibility('keyboard',source.checked);
-    setCanvasVisibility('circle_of_fifths',!source.checked);
+    showCanvasAccordingToMode(source.checked ? 'keyboard' : null);
 
     if (!source.checked)
     {
