@@ -289,9 +289,40 @@ function drawKeyHighlight(key,ctx,x,y){
     else{
         //Just solid
 
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.5;
         ctx.fillStyle = key.highlightColor;
     }
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.fill();
+
+    drawKeyHighlightAccentOverlay(key,ctx,x,y);
+
+}
+
+function drawKeyHighlightAccentOverlay(key,ctx,x,y){
+
+    //sharp countour
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = key.highlightColor;
+    ctx.lineWidth = 5;
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.stroke();     
+
+    //hairline
+
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = 'rgb(255,255,255)';
+    ctx.lineWidth = 2;
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.stroke();
+
+}
+
+function drawKeyOutlines(key,ctx,x,y){
 
     if(key.isWhite){
         //Drawing WHITE key, (x,y) topleft
@@ -301,7 +332,7 @@ function drawKeyHighlight(key,ctx,x,y){
             key.width * keyboard.clientHeight * keyboardParameters.keyWidthToHeightRatio - keyboardParameters.keyMargin * 2,  
             keyboard.clientHeight-keyboardParameters.keyMargin * 2,5);
 
-        ctx.fill();
+        
     }
     else{
         //Drawing BLACK key, (x,y) topleft
@@ -312,7 +343,7 @@ function drawKeyHighlight(key,ctx,x,y){
             blackWidth,
             keyboard.clientHeight * keyboardParameters.blackKeyHeight,6);
 
-        ctx.fill();
+        
     }
 }
 
