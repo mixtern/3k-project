@@ -124,11 +124,11 @@ function setKeyboardVisibility(source) {
         'mode-basetone': function (x, y, canvas, evtype) { },
         'mode-alttone': function (x, y, canvas, evtype) { },
         'mode-chords': toggleKeyHighlight,
-        'mode-arrows': function (x, y, canvas, evtype) { },
-        'mode-labels': toggleKeyLabel,
+        'mode-arrows': createArrowsHandler,
+        'mode-labels': createLabelsHandler,
         'mode-fill': function (x, y, canvas, evtype) { },
         'mode-highlight': function (x, y, canvas, evtype) { },
-        'mode-keyboard': function (x, y, canvas, evtype) { }
+        'mode-keyboard': toggleKeyLabel
     };
 
     drawKeyboard();
@@ -351,6 +351,7 @@ function drawKeyboard() {
 
     updateKeySize();
     keyboardDrawBase(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
+    drawLabels(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
 }
 
 function updateKeySize() {
@@ -437,6 +438,18 @@ function toggleKeyHighlight(x, y, cavnas,evtype) {
     drawKeyboard();
 }
 
+
+function removeKeyLabels()
+{
+    for (let key of keys)
+    {
+        key.labels = [null,null];
+    }
+    
+    redraw();
+}
+
+
 function toggleKeyLabel(x, y, cavnas,evtype) {
 
     if (evtype != 'mousedown')
@@ -461,15 +474,15 @@ function toggleKeyLabel(x, y, cavnas,evtype) {
             key.hitY2 > y;            
         });
 
-        if (document.querySelector("#label-text").value.length < 1) {
-        document.querySelector("#label-text-validation").style.display = 'block';
+        if (document.querySelector("#label-text-for-key").value.length < 1) {
+        document.querySelector("#label-text-for-key-validation").style.display = 'block';
         drawKeyboard();
         return;
     }
 
     document.querySelector("#label-text-validation").style.display = 'none';
 
-    var text = document.querySelector("#label-text").value;
+    var text = document.querySelector("#label-text-for-key").value;
 
     //Cycle highlihgt types
 

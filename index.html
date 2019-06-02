@@ -125,7 +125,7 @@
             <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
             Размер
             <div class="rangeslidecontainer">
-                <input type="range" min="12" max="45" value="25" class="rangeslider" id="label-size"><br />
+                <input type="range" min="12" max="65" value="25" class="rangeslider" id="label-size"><br />
             </div>
 
             <input type="text" id="label-text" placeholder="Сюда текст">
@@ -170,7 +170,7 @@
 
         </div>
         
-        <!-- AUX MIDI KEYBOARD -->
+        <!-- KEYBOARD -->
         <label class="switch">
             <input type="checkbox" id="mode-keyboard" onchange="changemode(this)">
             <span class="slider">КЛАВИШИ</span>
@@ -182,6 +182,13 @@
                     <input type="checkbox" id="keyboard-show" onchange="setKeyboardVisibility(this)">
                     <span class="slider">Показать</span>
             </label>
+
+            Подписать клавишу
+
+            <input type="text" id="label-text-for-key" placeholder="текст, затем ЛКМ">
+            <div class="validation" id="label-text-for-key-validation">Нужно вписать сюда какой-то текст!</div>
+
+            <button class="btn" onclick="removeKeyLabels()">☠</button>
         </div>
 
         <!-- HARMONIC HIGHLIGHT SELECTORS -->

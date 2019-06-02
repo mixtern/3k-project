@@ -292,6 +292,11 @@ function marshalModeAction(x, y, canvas,evtype, code) {
     availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
 }
 
+function redraw() {
+
+    availableRenderers[activeCanvasName]();    
+}
+
 function addModeListeners(source)
 {
     source.ctx = source.getContext('2d');
@@ -340,6 +345,9 @@ window.addEventListener('load', function ()
 {
     main = addModeListeners(document.getElementById('circleOfFifths'));
     keyboard = addModeListeners(document.getElementById('keyboard-canvas'));
+
+    availableRenderers['circle_of_fifths']= drawCircleOfFifths;
+    availableRenderers['keyboard']= drawKeyboard;
 
     redraw();
 });
@@ -397,7 +405,13 @@ var availableModeFunctions = {
     },
 };
 
+var availableRenderers ={
+    //initialized onload
+};
+
 var avaliableContainerIds = ['circle_of_fifths'];
+var activeCanvasName = avaliableContainerIds[0];
+
 
 var availableChordHighlights = {
     'chordmode-sector': ChordHighlightType.Sector,
@@ -412,7 +426,12 @@ function showCanvasAccordingToMode(mode){
         mode = avaliableContainerIds[0];
 
     for(var i=0;i!=avaliableContainerIds.length;++i)
+    {
         setCanvasVisibility(avaliableContainerIds[i], avaliableContainerIds[i] == mode);          
+
+        if(avaliableContainerIds[i]== mode) 
+            activeCanvasName = avaliableContainerIds[i];    //todo: multiple active containers
+    }
 }
 
 function setCanvasVisibility(containerId,isVisible){
@@ -596,8 +615,9 @@ function toggleSectorHighlight(x, y, cavnas,evtype) {
  * Draws all items (circle of fifths & arrows)
  * @returns {} 
  */
-function redraw() {
 
+
+function drawCircleOfFifths(){
     setCanvasWidthFromUi();
 
     //Get parameters from UI
