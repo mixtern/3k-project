@@ -4,6 +4,7 @@ function createArrow(arrowColor,arrowThickness,arrowOpacity,xstart,ystart) {
         color: arrowColor,
         thickness: arrowThickness,
         opacity:arrowOpacity,
+        stroke : false,
         points:[
             {x: xstart,y:ystart},
         ]
@@ -17,10 +18,53 @@ var arrowSettings = {
     arrowThickness: 3,
     arrowSimplification: 500,
     arrowSnap: false,
+    snapPoints : [],
 
     drawingArrow: null,
     alternateDrawingMode : false
 };
+
+/**
+ * Builds arrow snappoints depending on active mode (chords in circle of 5ths or keys)
+ */
+function buildSnapPoints(){
+
+    switch(activeCanvasName){
+        case 'keyboard':
+            arrowSettings.snapPoints=[];
+
+            keys.forEach(key => {
+
+                var keymidx = key.hitX1*0.5 + key.hitX2*0.5;
+                var nVerticalSnapsPerKey = 5;
+                
+                // Create 5 evenly spaced snap points per each key
+
+                for (let nstep = 0; nstep < nVerticalSnapsPerKey; nstep++) {
+
+                    var t =  nstep / nVerticalSnapsPerKey;
+
+                    // On white keys, snap only to the lower 40% of key
+
+                    if(key.isWhite)
+                        t = t*0.4  + 0.6;                     
+
+                    arrowSettings.snapPoints.push({x:keymidx,y:key.hitY1 * (1-t) + key.hitY2*(t) });
+                }
+               
+                
+            });
+
+            break;
+        default:
+            arrowSettings.snapPoints = chordDefinitions.map((ch) => {
+                return {
+                    x: ch.actualPx,
+                    y: ch.actualPy};
+            });
+            break;
+    }
+}
 
 /**
  * Main arrow drawing function
@@ -30,13 +74,20 @@ var arrowSettings = {
  * @returns {} 
  */
 function drawArrows(ctx, width, height) {
-    
-    var tension = 1;
-    
+        
     //Draw saved arrow as curve
 
     for (let arrow of activeArrows) {
         
+        if(arrow.stroke)
+        {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = arrow.thickness*2;
+            ctx.globalAlpha = 0.9;
+
+            drawCurve(ctx, arrow.points, 0.5);
+        }
+
         ctx.strokeStyle = arrow.color;
         ctx.lineWidth = arrow.thickness;
         ctx.globalAlpha = arrow.opacity;
@@ -248,12 +299,16 @@ function startArrow(px,py)
     arrowSettings.arrowSimplification = document.querySelector("#arrow-simplification").value;
     arrowSettings.arrowSnap = document.querySelector("#arrow-snap").checked;
 
-    arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor, arrowSettings.arrowThickness, arrowSettings.arrowOpacity, px, py);
+    arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor, arrowSettings.arrowThickness, arrowSettings.arrowOpacity, px, py);   
+
     redraw();
 }
 
 function finishArrow(minimalistic)
 {
+    if(activeCanvasName == 'keyboard')
+        arrowSettings.drawingArrow.stroke = true;
+
     activeArrows.push(cleanupArrow(arrowSettings.drawingArrow, minimalistic));
     arrowSettings.drawingArrow = null;
     redraw();
@@ -261,24 +316,27 @@ function finishArrow(minimalistic)
 
 /**
  * Takes point list and reduces its count using Ramer-Douglas-Peucker algo
- * @param {} arrow 
- * @returns {}
+ * @param {Object} arrow 
+ * @param {Boolean} minimalistic
+ * @returns {Object}
  */
 function cleanupArrow(arrow, minimalistic) {
+
+    buildSnapPoints();
 
     if (arrowSettings.arrowSnap && !minimalistic) {
 
         var start = arrow.points[0];
         var end = arrow.points[arrow.points.length-1];
 
-        var snappoints = chordDefinitions.map((ch) => {
+        var snappoints = arrowSettings.snapPoints.map((snap) => {
             return {
-                x: ch.actualPx,
-                y: ch.actualPy,
-                ds:(ch.actualPx - start.x) * (ch.actualPx - start.x) +
-                    (ch.actualPy - start.y) * (ch.actualPy - start.y),
-                de: (ch.actualPx - end.x) * (ch.actualPx - end.x) +
-                    (ch.actualPy - end.y) * (ch.actualPy - end.y)};
+                x: snap.x,
+                y: snap.y,
+                ds:(snap.x - start.x) * (snap.x - start.x) +
+                    (snap.y - start.y) * (snap.y - start.y),
+                de: (snap.x - end.x) * (snap.x - end.x) +
+                    (snap.y - end.y) * (snap.y - end.y)};
         });
 
         var startsnap = snappoints.sort(function(d1, d2) {
@@ -444,7 +502,7 @@ function getCurvePoints(pts, tension) {
     // clone array so we don't change the original    
     ptsCopy = pts.slice(0);
 
-    // The algorithm require a previous and next point to the actual point array.
+    // The algorithm requires a previous and next point to the actual point array.
     // Duplicate first & last points
     ptsCopy.unshift(pts[0]);
     ptsCopy.push(pts[pts.length - 1]);

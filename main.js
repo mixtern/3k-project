@@ -665,6 +665,8 @@ function setCanvasWidthFromUi()
     document.querySelector("#circleOfFifths").height = width * co5widthToHeightRatio;
 }
 
+
+
 function fillBackground(ctx,w,h) {
 
     ctx.clearRect(0, 0, w, h);
@@ -706,6 +708,23 @@ function lerp(t, c1, c2) {
     return c1*t + c2*(1-t);
 }
 
+
+/**
+ * Parse color selector as rgb value
+ * @param {string} text 
+ * @returns {color}
+ */
+
+function text2rgb(text)
+{
+    text = text.replace("#","");
+
+    return { 
+        r:parseInt(text.substr(0, 2),16),
+        g:parseInt(text.substr(2, 2),16),
+        b:parseInt(text.substr(4, 2),16)
+    };
+}
 
 function lerpcolor(t, c1, c2) {
     
