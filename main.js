@@ -106,6 +106,7 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
 
         base: basename,
         baseMod: baseModeration,
+        isCustomName : false,
 
         actualPx : null,
         actualPy : null,
@@ -544,17 +545,9 @@ function setAltTonic(x, y, canvas,evtype) {
 
 
 
-
-
-function toggleSectorHighlight(x, y, cavnas,evtype) {
-
-    if (evtype != 'mousedown')
-        return;
-
-    var xc = cavnas.clientWidth / 2;
-    var yc = cavnas.clientHeight / 2;
-
-    var highlightColor = document.getElementById("chord-color").value;
+function getChordDefinitionFromPosition(x,y,width,height){
+    var xc = width / 2;
+    var yc = height / 2;
 
     x -= xc;
     y -= yc;
@@ -566,7 +559,7 @@ function toggleSectorHighlight(x, y, cavnas,evtype) {
 
     //Guess what sector was clicked
 
-    var hit = chordDefinitions.find(chrd => {
+    return chordDefinitions.find(chrd => {
 
         var bounds = getChordBoundsFromDefinition(chrd);
         var diff = bounds.angle - angle;
@@ -581,6 +574,19 @@ function toggleSectorHighlight(x, y, cavnas,evtype) {
             r > bounds.offmin &&
             r < bounds.offmax;
     });
+}
+
+
+function toggleSectorHighlight(x, y, canvas,evtype) {
+
+    if (evtype != 'mousedown')
+        return;
+
+    var highlightColor = document.getElementById("chord-color").value;
+
+    //Guess what sector was clicked
+
+    var hit = getChordDefinitionFromPosition(x,y,canvas.clientWidth, canvas.clientHeight);
 
     //Cycle highlihgt types
 
@@ -1168,10 +1174,10 @@ function drawChord(chord,ctx,xc,yc,r) {
 
     var combinedText = chord.base + _getChordAlterationText(chord.baseMod);
 
-    if (chord.minor)
+    if (chord.minor && !chord.isCustomName)
         combinedText += "m";
 
-    if (chord.hasAlternateName)
+    if (chord.hasAlternateName&& !chord.isCustomName)
         combinedText += "  " + chord.altName + _getChordAlterationText(chord.altMod);
 
     var dim = ctx.measureText(combinedText);

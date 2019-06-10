@@ -28,7 +28,7 @@ var _rotationModeKeycode = 16;
 var _arbitraryAngleKeycode = 17;
 
 /**
- * Kinda state machine for switching betwee moving/rotating modes
+ * Kinda state machine for switching between moving/rotating modes
  */
 var LabelEditModes = Object.freeze({
     None: {
@@ -38,6 +38,13 @@ var LabelEditModes = Object.freeze({
             if (document.querySelector("#label-text").value.length < 1) {
                 document.querySelector("#label-text-validation").style.display = 'block';
                 redraw();
+                return;
+            }
+
+            //If 'override chord name' mode is on, find clicked chord and override
+            //its name
+            if(document.querySelector("#label-override-co5-chord-name").checked){
+                overrideCo5Label(x,y,canvas);
                 return;
             }
 
@@ -167,6 +174,27 @@ function removeAllLabels() {
     activeLabels = [];
     redraw();
 }
+
+/**
+ * 
+ * @param {Integer} x Click position (x)
+ * @param {IntersectionObserverInit} y Click position (y)
+ * @param {Canvas} canvas 
+ */
+function overrideCo5Label(x,y,canvas){
+    var chord = getChordDefinitionFromPosition(x,y,canvas.clientWidth,
+         canvas.clientHeight);
+
+    if(null == chord)
+        return;
+
+    chord.base = document.querySelector("#label-text").value;
+    chord.baseMod = null;
+    chord.isCustomName = true;
+    
+    redraw();
+}
+
 
 function normalizeAngle(a){
 
