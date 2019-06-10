@@ -514,20 +514,11 @@ function setTonic(x, y, canvas,evtype) {
     if (evtype != 'mousedown')
         return;
 
-    var xc = canvas.clientWidth / 2;
-    var yc = canvas.clientHeight / 2;
-    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
+    var clickpos = getSectorNumberAndRadiusFromPixelPosition(x,y,canvas.clientWidth, canvas.clientHeight);
 
-    x -= xc;
-    y -= yc;
-    var r = Math.sqrt(x * x + y * y) / rmax;
-
-    var angle = Math.atan2(y , x),
-        tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
-
-    circleParameters.selectedTonic = tonic;
+    circleParameters.selectedTonic = clickpos.sector;
     circleParameters.tonicShown = true;
-    circleParameters.isTonicMinor = r < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
+    circleParameters.isTonicMinor = clickpos.radius < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
 
     document.getElementById("tonic-enabled").checked = true;
 
@@ -539,19 +530,11 @@ function setAltTonic(x, y, canvas,evtype) {
     if (evtype != 'mousedown')
         return;
 
-    var xc = canvas.clientWidth / 2;
-    var yc = canvas.clientHeight / 2;
-    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
-
-    x -= xc;
-    y -= yc;
-    var r = Math.sqrt(x * x + y * y)  / rmax;
-    var angle = Math.atan2(y, x),
-        tonic = Math.round(angle / circleParameters.sectorRadians) + 3;
-
-    circleParameters.altTonic = tonic;
+    var clickpos = getSectorNumberAndRadiusFromPixelPosition(x,y,canvas.clientWidth, canvas.clientHeight);
+    
+    circleParameters.altTonic = clickpos.sector;
     circleParameters.altTonicShown = true;
-    circleParameters.isAltTonicMinor = r < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
+    circleParameters.isAltTonicMinor = clickpos.radius < circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
 
     document.getElementById("alt-enabled").checked = true;
 
@@ -892,21 +875,72 @@ function _getChordAlterationText(alt) {
     }
 }
 
-function getChordBoundsFromDefinition(chord) {
+function getSectorNumberAndRadiusFromPixelPosition(x,y, canvasWidth, canvasHeight){
+    var xc = canvasWidth / 2;
+    var yc = canvasHeight / 2;
+    var rmax = Math.min(xc, yc) - circleParameters.marginPx;
 
-    var angle2pi = (chord.position) * circleParameters.sectorRadians + Math.PI * 3 / 2;
+    x -= xc;
+    y -= yc;
+    var r = Math.sqrt(x * x + y * y) / rmax;
+
+    var angle = Math.atan2(y , x);
+        
+    return {
+        sector:Math.round(angle / circleParameters.sectorRadians) + 3,
+        radius: r
+    }
+}
+
+
+/**
+ * 
+ * @param {Integer} co5Position Chord position on circle of fifths (0 - 11)
+ * @param {Integer} radialSectorNumber Circular slice number (0 - outer circle for major chords, 1 - inner for minor, 2 - center for aux chord labels)
+ */
+function getChordBoundsFromChordPosition(co5Position, radialSectorNumber) {
+    var angle2pi = (co5Position) * circleParameters.sectorRadians + Math.PI * 3 / 2;
 
     while (angle2pi > Math.PI * 2) {
         angle2pi -= Math.PI * 2;
+    }
+
+    var minperc = 0;
+    var maxperc = 1;
+
+    switch(radialSectorNumber)
+    {
+        case 0:
+            //outer circle for major chords
+            minperc = circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;
+            maxperc = circleParameters.outerRadiusPercents;
+            break;
+        case 1:
+            //inner slice for minor
+            minperc = circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents;
+            maxperc = circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents;   
+            break;
+        case 2:
+            //central slice for aux chords
+            minperc = 0.1;
+            maxperc = circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents;   
+            break;
+        default:
+            break;
     }
 
     return {
         angle: angle2pi,
         startAngle: angle2pi - circleParameters.sectorRadians/2,
         endAngle: angle2pi + circleParameters.sectorRadians/2,
-        offmax: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents : circleParameters.outerRadiusPercents,
-        offmin: chord.minor ? circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents - circleParameters.minorCircleThicknessPercents : circleParameters.outerRadiusPercents - circleParameters.majorCircleThicknessPercents,
+        offmax: maxperc,
+        offmin: minperc,
     };
+}
+
+function getChordBoundsFromDefinition(chord) {
+
+    return getChordBoundsFromChordPosition(chord.position, chord.minor ? 1:0);
 }
 
 /**

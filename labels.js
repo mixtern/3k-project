@@ -1,8 +1,22 @@
 function createLabel(xstart, ystart, ctx) {
+   
+    var colFill = null;
+    var tpFilltype = ChordHighlightType.None;
+
+    //If circle-of-fifths-specific 'sector highlight' checkbox is ticked
+
+    if(document.querySelector("#label-background-highlight").checked)
+    {
+        colFill = document.querySelector("#chord-color").value; //set in 'chord highlight' section
+        tpFilltype = ChordHighlightType.Sector;
+    }
+    
     return {
         header: document.querySelector("#label-text").value,
         color: document.querySelector("#label-color").value,
         size: document.querySelector("#label-size").value,
+        fill : colFill,
+        filltype : tpFilltype,
         x: xstart,
         y: ystart,
         angle: 0,
@@ -66,7 +80,7 @@ var LabelEditModes = Object.freeze({
             var dx = x - activeLabels[activeLabels.length - 1].x;
             var dy = y - activeLabels[activeLabels.length - 1].y;
             
-            var angle = Math.atan2(dy, dx);;
+            var angle = Math.atan2(dy, dx);
 
             if (this.snap45)
                 angle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
@@ -154,6 +168,22 @@ function removeAllLabels() {
     redraw();
 }
 
+function normalizeAngle(a){
+
+    while(a < -Math.PI)
+        a+=Math.PI*2;
+
+    while(a > Math.PI)
+        a-=Math.PI*2;
+
+    return a;
+}
+
+
+function getAngleDifference(a1,a2){
+    
+    return normalizeAngle(normalizeAngle(a1)-normalizeAngle(a2));
+}
 
 /**
  * Main label drawing function
@@ -163,7 +193,66 @@ function removeAllLabels() {
  * @returns {} 
  */
 function drawLabels(ctx, width, height) {
+
     for (let label of activeLabels) {
+
+        ctx.font = label.size + "px Arial";
+
+        var dim = {
+            x: ctx.measureText(label.header).width,
+            y: ctx.measureText("M").width
+        }
+
+        if(label.filltype == ChordHighlightType.Sector){
+
+            var sector = getSectorNumberAndRadiusFromPixelPosition(label.x,label.y,width,height);
+            var bounds = getChordBoundsFromChordPosition(sector.sector,2);
+
+            var xc = width/2;
+            var yc = height/2;
+
+            var r = Math.min(xc, yc) - circleParameters.marginPx;
+
+            var sectorSpan = circleParameters.sectorRadians / 2;
+    
+            var maxDeltaAngle = 0;
+
+            //Check all four bounding-box (AABB) corners for angle violations
+
+            for(var ix = 0;ix!=2;++ix)
+            {
+                for(var iy =0;iy!=2;++iy)
+                {
+                    var probe = Math.atan2(
+                        label.y - yc + (iy*2-1)*dim.y/2,
+                        label.x - xc + (ix*2-1)*dim.x/2);
+
+                    maxDeltaAngle = Math.max(maxDeltaAngle,
+                        Math.abs(getAngleDifference(bounds.angle,probe)));
+                }
+            }
+
+            //Limit sector expansion to 3 sectors
+
+            var maxDeltaAngle = Math.min(maxDeltaAngle, circleParameters.sectorRadians*3/2);           
+            
+            sectorSpan = Math.max(sectorSpan,maxDeltaAngle);
+
+            var amin = bounds.angle - sectorSpan;
+            var amax = bounds.angle + sectorSpan;
+
+            //Fill sector
+        
+            ctx.globalAlpha = 0.4;
+            ctx.fillStyle = label.fill;
+
+            ctx.beginPath();
+
+            ctx.arc(xc,yc,bounds.offmax * r,amin,amax);    
+            ctx.arc(xc,yc,bounds.offmin * r,amax,amin,true);
+    
+            ctx.fill();
+        }
 
         if (label._drawRotationHandle!=null) {
             ctx.globalAlpha = 1;
@@ -184,27 +273,25 @@ function drawLabels(ctx, width, height) {
             ctx.fill();
         }
         
-        ctx.font = label.size + "px Arial";
 
-        var dim = {
-            x: ctx.measureText(label.header).width,
-            y: ctx.measureText("M").width
-        }
-        
 
         ctx.save();
         ctx.translate(label.x, label.y);
         ctx.rotate(label.angle);
         ctx.translate(-dim.x / 2, dim.y / 2);
 
-        ctx.globalAlpha = 0.15;
-        ctx.fillStyle = 'white';
+        //Only stroke if no fill is active
+        if(label.filltype == ChordHighlightType.None)
+        {
+            ctx.globalAlpha = 0.15;
+            ctx.fillStyle = 'white';
 
-        var strokeSize = 4;
+            var strokeSize = 4;
 
-        for (var offx = -strokeSize; offx < strokeSize; ++offx)
-            for (var offy = -strokeSize; offy < strokeSize; ++offy)
-        ctx.fillText(label.header, offx,  offy);
+            for (var offx = -strokeSize; offx < strokeSize; ++offx)
+                for (var offy = -strokeSize; offy < strokeSize; ++offy)
+            ctx.fillText(label.header, offx,  offy);
+        }
 
         ctx.globalAlpha = 1;
         ctx.fillStyle = label.color;
@@ -212,5 +299,7 @@ function drawLabels(ctx, width, height) {
        // ctx.fillText(label.header, label.x - dim.x / 2, label.y + dim.y / 2);
         ctx.fillText(label.header, 0, 0);
         ctx.restore();
+
+
     }
 }

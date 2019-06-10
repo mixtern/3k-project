@@ -135,6 +135,14 @@
                 Hint: Shift - для поворота текста, Ctrl/Cmd - на произвольный угол
             </span>
 
+            <!-- checkbox only shown when Circle of Fifths canvas is active 
+                (via canvas-dependent canvas-dependent-circleOfFifths) -->
+                
+            <div class="canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="label-background-highlight">
+                Подсветка надписи сектором?<br /><br />
+            </div>
+
             <button class="btn" onclick="removeLastLabel()">⮌</button>
             <button class="btn" onclick="removeAllLabels()">☠</button>
 
