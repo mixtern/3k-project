@@ -25,6 +25,7 @@ window.addEventListener('load', function ()
 var keyboardParameters = {
     keyWidth: 0.6,
     blackKeyWidth: 0.45,
+
     blackKeyHeight: 0.6,
     blackCOffset: 33 / 60.0,
 
@@ -34,6 +35,17 @@ var keyboardParameters = {
     topPadding: 0.1,
 
     keyMargin : 1,
+
+    isCompressed : false,
+
+    keyboardDefaultHeight : 500,
+    keyboardCompressedHeight: 250,
+
+    blackKeyHeightDefault: 0.6,
+    blackKeyHeightCompressed: 0.5,
+
+    keyWidthToHeightRatioDefault: 0.22779922779922779922779922779923,
+    keyWidthToHeightRatioCompressed: 0.4,
 
     keyWidthToHeightRatio: 0.22779922779922779922779922779923,
 };
@@ -231,6 +243,13 @@ function drawKeyLabels(key,ctx,x,y){
     var keyHeight = keyboard.clientHeight * key.height;
 
     var step = keyHeight / 6;
+    var offsetY = keyHeight * 0.7;
+   
+    if(keyboardParameters.isCompressed)
+    {
+        offsetY = key.isWhite ? keyHeight * 0.65 : keyHeight * 0.3;
+        step = key.isWhite ? (keyHeight / 4.5) : (keyHeight / 4);
+    }
 
     for(var i = 0;i!=key.labels.length;++i){
         if(key.labels[i] == null)
@@ -241,7 +260,7 @@ function drawKeyLabels(key,ctx,x,y){
         drawCircledLabel(key.labels[i],
             ctx,
             key.isWhite ? x + keyWidth/2 : x,
-            y + keyHeight* 0.7 + step*i,
+            y + offsetY + step*i,
             key.isWhite ? keyWidth * 0.9 :  keyWidth * 0.7,
             key.isWhite ? 'black' : 'white',
             key.isWhite ? 'white' : 'black');
@@ -356,6 +375,22 @@ function drawKeyboard() {
 }
 
 function updateKeySize() {
+    
+    if(keyboardParameters.isCompressed!=document.querySelector("#keys-compressed").checked)
+    {
+        keyboardParameters.isCompressed = document.querySelector("#keys-compressed").checked;
+        
+        //remove arrows & labels, because they dont get too well with rescaling :(
+
+        activeArrows = [];
+        activeLabels = [];
+    }
+
+
+    keyboard.height = keyboardParameters.isCompressed ? keyboardParameters.keyboardCompressedHeight : keyboardParameters.keyboardDefaultHeight;
+    keyboardParameters.keyWidthToHeightRatio = keyboardParameters.isCompressed ? keyboardParameters.keyWidthToHeightRatioCompressed : keyboardParameters.keyWidthToHeightRatioDefault; 
+    keyboardParameters.blackKeyHeight = keyboardParameters.isCompressed ? keyboardParameters.blackKeyHeightCompressed : keyboardParameters.blackKeyHeightDefault; 
+
     var height = keyboard.clientHeight;
     var width = 0;
 
