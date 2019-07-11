@@ -304,7 +304,7 @@ function addModeListeners(source)
    
     source.addEventListener('mousedown',
     function (event) {
-        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousedown');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousedown', event);
         return false;
     },false);
 
@@ -510,10 +510,17 @@ function setChordmode(source) {
 
 /////////////////////////////////////////////////////////////////
 
-function setTonic(x, y, canvas,evtype) {
+function setTonic(x, y, canvas,evtype,evt) {
 
     if (evtype != 'mousedown')
         return;
+
+    //marshal event to altTonic handler if any modifier key is pressed
+    if(evt.shiftKey || evt.altKey || evt.ctrlKey)
+    {
+        setAltTonic(x,y,canvas,evtype);
+        return;
+    }    
 
     var clickpos = getSectorNumberAndRadiusFromPixelPosition(x,y,canvas.clientWidth, canvas.clientHeight);
 
