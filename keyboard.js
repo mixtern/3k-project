@@ -143,6 +143,8 @@ function setKeyboardVisibility(source) {
         'mode-keyboard': toggleKeyLabel
     };
 
+    removeAllLabels();
+
     drawKeyboard();
 }
 
