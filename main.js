@@ -147,6 +147,44 @@ function createChord(co5Position, isMinor, basename, baseModeration, altName = "
         },
 
 
+        getExtensionFont : function(){
+            
+            var fontSelector = {
+                minorFont : function(chord){
+
+                if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
+                {
+                    if(circleParameters.renderMode == UiRenderingModeMode.Bold)
+                        return "bold "+(20*circleParameters.scalingFactor())+"px Arial";
+
+                    return "bold "+(20*circleParameters.scalingFactor())+"px Arial";
+                }
+
+                if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
+                    return "bold "+(20*circleParameters.scalingFactor())+"px Arial";
+                                
+                return (20*circleParameters.scalingFactor())+"px Arial";
+            },
+
+            majorFont : function(chord){
+
+                if (circleParameters.tonicShown && chord.isTonicChord(circleParameters.selectedTonic, circleParameters.isTonicMinor)) 
+                {    
+                    if(circleParameters.renderMode == UiRenderingModeMode.Bold)
+                        return "bold "+(25*circleParameters.scalingFactor())+"px Arial";
+
+                    return "bold "+(25*circleParameters.scalingFactor())+"px Arial";
+                }
+
+                if(circleParameters.renderMode == UiRenderingModeMode.Bold && chord.active)
+                    return "bold "+(25*circleParameters.scalingFactor())+"px Arial";
+                                
+                return (25*circleParameters.scalingFactor())+"px Arial";
+            },
+        } 
+        
+        return this.minor ? fontSelector.minorFont(this) : fontSelector.majorFont(this);
+        },
 
         getFont : function(){
 
@@ -1165,8 +1203,16 @@ function drawChord(chord,ctx,xc,yc,r) {
         ctx.restore();
     }
 
+    ctx.globalAlpha = origAlpha;
+
+    drawChordLabel(chord, ctx, x, y);
+
+
+}
+
+function drawChordLabel(chord, ctx, x, y) {
+    
     ctx.fillStyle = chord.active ? circleParameters.activeColor : circleParameters.inactiveColor();
-    ctx.font = chord.getFont();
 
     //Highlight tonic chord
 
@@ -1175,36 +1221,59 @@ function drawChord(chord,ctx,xc,yc,r) {
     else if(circleParameters.altTonicShown && chord.isTonicChord(circleParameters.altTonic, circleParameters.isAltTonicMinor))
         ctx.fillStyle = circleParameters.altColor;
     
-    ctx.globalAlpha = origAlpha;
-
+   
     //Calculate actual chord text to draw
 
     var combinedText = chord.base + _getChordAlterationText(chord.baseMod);
-
     if (chord.minor && !chord.isCustomName)
         combinedText += "m";
-
-    if (chord.hasAlternateName&& !chord.isCustomName)
+    if (chord.hasAlternateName && !chord.isCustomName)
         combinedText += "  " + chord.altName + _getChordAlterationText(chord.altMod);
 
-    var dim = ctx.measureText(combinedText);
-    var lineHeight = ctx.measureText('M').width; //hack
+    const {textBase,textExt} = separateChordBaseAndExtension(combinedText);
 
+    ctx.font = chord.getFont();
+    var dimBase = ctx.measureText(textBase);
+    var lineHeight = ctx.measureText('M').width; //hack
+    ctx.font = chord.getExtensionFont();
+    var dimExt = ctx.measureText(textExt);
+
+    var combinedWidth = dimBase.width + dimExt.width;
+    
     chord.actualPx = x;
     chord.actualPy = y;
-
-    ctx.fillText(combinedText, x - dim.width / 2, y + lineHeight / 2);
-
     
-    if (typeof chord.hint != 'undefined' && chord.hint.length > 0) {
-        
-        ctx.font = "bold 12px Arial";
-        ctx.fillStyle = 'white'
-        ctx.fillText(chord.hint, x - dim.width / 2-1, y + lineHeight*1.1-1);
-        
-        ctx.fillStyle = 'black';
-        ctx.fillText(chord.hint, x - dim.width / 2, y + lineHeight*1.1);
+    ctx.font = chord.getFont();
+    ctx.fillText(textBase, x - combinedWidth / 2, y + lineHeight / 2);
+  
+    ctx.font = chord.getExtensionFont();
+    ctx.fillText(textExt, x - combinedWidth / 2 + dimBase.width, y + lineHeight*2/3);
+  
+}
+
+/**
+ * Attempts to separate chord base name and extension
+ * @param {String} wholeLabel Combined label with chord extensions
+ */
+function separateChordBaseAndExtension(wholeLabel) {
+    
+    var matchResult = wholeLabel.match(/(MAJ)?[2-9]?/gmi);
+    
+    var ext = "";
+    var basename = wholeLabel;
+
+    if(matchResult!=null)
+    {
+        ext = matchResult.reduce((c, v) => c.length > v.length ? c : v);
+        basename = basename.substr(0,basename.length - ext.length);
     }
 
+    basename = basename.replace('b','♭').replace('#','♯');
 
+    return{
+        textBase: basename,
+        textExt: ext
+
+    }
 }
+
