@@ -1268,7 +1268,7 @@ function separateChordBaseAndExtension(wholeLabel) {
         basename = basename.substr(0,basename.length - ext.length);
     }
 
-    basename = basename.replace('b','♭').replace('#','♯');
+    basename = basename.replace('#','♯');
 
     return{
         textBase: basename,
