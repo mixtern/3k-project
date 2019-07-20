@@ -172,6 +172,7 @@ function removeLastLabel() {
 
 function removeAllLabels() {
     activeLabels = [];
+    restoreOriginalCo5ChordNames();
     redraw();
 }
 
@@ -188,6 +189,14 @@ function overrideCo5Label(x,y,canvas){
     if(null == chord)
         return;
 
+    if(!chord.isCustomName)
+    {
+        chord.originalName = {
+            base: chord.base,
+            mod: chord.baseMod
+        };
+    }
+
     chord.base = document.querySelector("#label-text").value;
     chord.baseMod = null;
     chord.isCustomName = true;
@@ -195,6 +204,17 @@ function overrideCo5Label(x,y,canvas){
     redraw();
 }
 
+function restoreOriginalCo5ChordNames(){
+    for (let chord of chordDefinitions)
+    {
+        if(!chord.isCustomName)
+            continue;
+
+        chord.base = chord.originalName.base;
+        chord.baseMod = chord.originalName.mod;
+        chord.isCustomName = false;
+    }
+}
 
 function normalizeAngle(a){
 
