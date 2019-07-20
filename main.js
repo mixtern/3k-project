@@ -1269,6 +1269,7 @@ function separateChordBaseAndExtension(wholeLabel) {
     }
 
     basename = basename.replace('#','♯');
+    basename = basename.replace(/(?<=.)b$/gi,'♭'); //replace 'b' at end with unicode 'flat' symbol
 
     return{
         textBase: basename,
