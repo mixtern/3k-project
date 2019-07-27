@@ -372,8 +372,9 @@ function drawKeyboard() {
 
     updateKeySize();
     keyboardDrawBase(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
-    drawLabels(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
-    drawArrows(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
+
+    //arrows, labels, etc
+    invokeModeIndependentRendereres(main.ctx, main.clientWidth, main.clientHeight);
 }
 
 function updateKeySize() {

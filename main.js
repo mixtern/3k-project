@@ -333,7 +333,7 @@ function marshalModeAction(x, y, canvas,evtype, code) {
 
 function redraw() {
 
-    availableRenderers[activeCanvasName]();    
+    modeDependentRenderers[activeCanvasName]();    
 }
 
 function addModeListeners(source)
@@ -385,8 +385,8 @@ window.addEventListener('load', function ()
     main = addModeListeners(document.getElementById('circleOfFifths'));
     keyboard = addModeListeners(document.getElementById('keyboard-canvas'));
 
-    availableRenderers['circle_of_fifths']= drawCircleOfFifths;
-    availableRenderers['keyboard']= drawKeyboard;
+    modeDependentRenderers['circle_of_fifths']= drawCircleOfFifths;
+    modeDependentRenderers['keyboard']= drawKeyboard;
 
     redraw();
 });
@@ -444,9 +444,12 @@ var availableModeFunctions = {
     },
 };
 
-var availableRenderers ={
+//called depending on mode selected (activeModeName)
+var modeDependentRenderers ={
     //initialized onload
 };
+
+var modeIndependentRenderers = [];
 
 var avaliableContainerIds = ['circle_of_fifths'];
 var activeCanvasName = avaliableContainerIds[0];
@@ -458,6 +461,10 @@ var availableChordHighlights = {
     'chordmode-circle': ChordHighlightType.Circle,
     'chordmode-circle-double': ChordHighlightType.DoubleCircle,
 };
+
+function invokeModeIndependentRendereres(ctx,w,h){
+    modeIndependentRenderers.forEach(renderer => renderer(ctx,w,h));
+}
 
 function showCanvasAccordingToMode(mode){
 
@@ -666,8 +673,9 @@ function drawCircleOfFifths(){
     //Draw cicrcle
     fillBackground(main.ctx, main.clientWidth, main.clientHeight);
     drawCo5(main.ctx, main.clientWidth, main.clientHeight);
-    drawArrows(main.ctx, main.clientWidth, main.clientHeight);
-    drawLabels(main.ctx, main.clientWidth, main.clientHeight);
+
+    //arrows, labels, etc
+    invokeModeIndependentRendereres(main.ctx, main.clientWidth, main.clientHeight);
 }
 
 function setCanvasWidthFromUi()

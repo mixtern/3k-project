@@ -1,3 +1,9 @@
+window.addEventListener('load', function () 
+{
+    //add label renderer to mode-independent callback list
+    modeIndependentRenderers.push(drawLabels);
+});
+
 function createLabel(xstart, ystart, ctx) {
    
     var colFill = null;

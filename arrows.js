@@ -1,3 +1,10 @@
+window.addEventListener('load', function () 
+{
+    //add arrow renderer to mode-independent callback list
+    modeIndependentRenderers.push(drawArrows);
+});
+
+
 function createArrow(arrowColor,arrowThickness,arrowOpacity,xstart,ystart) {
     return {
         header: '', //still WIP
