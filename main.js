@@ -1238,7 +1238,7 @@ function drawChordLabel(chord, ctx, x, y) {
     if (chord.hasAlternateName && !chord.isCustomName)
         combinedText += "  " + chord.altName + _getChordAlterationText(chord.altMod);
 
-    const {textBase,textExt} = separateChordBaseAndExtension(combinedText);
+    const {textBase,textExt} = chord.isCustomName ? separateChordBaseAndExtension(combinedText) : {textBase:combinedText,textExt:""};
 
     ctx.font = chord.getFont();
     var dimBase = ctx.measureText(textBase);
