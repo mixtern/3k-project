@@ -16,6 +16,7 @@
     <script src="midi.js"></script>
     <script src="persist.js"></script>
     <!--<script src="fretboard.js"></script>-->
+    <script src="label-overall.js"></script>
 
 </head>
 
@@ -148,6 +149,14 @@
                 <input type="checkbox" id="label-override-co5-chord-name">
                 Вписать вместо названия аккорда?<br /><br />
             </div>
+
+            <br />
+            <input type="text" id="overall-label-text" placeholder="Заголовок">
+            <select id="overall-label-placement">
+                <option value="bottom" selected>Внизу</option>
+                <option value="top">Вверху</option>
+            </select>
+            <input type="range" min="40" max="85" value="60" class="rangeslider" id="overall-label-size"><br />
 
             <button class="btn" onclick="removeLastLabel()">⮌</button>
             <button class="btn" onclick="removeAllLabels()">☠</button>

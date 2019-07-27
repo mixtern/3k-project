@@ -22,13 +22,15 @@ var observer = new MutationObserver(function(mutations) {
       '#label-size':propertyPrefix+'value',
       '#label-color':propertyPrefix+'value',
 
+      '#overall-label-size':propertyPrefix+'value',
+      '#overall-label-placement':propertyPrefix+'value',
+
       '#arrow-color':propertyPrefix+'value',
       '#arrow-thickness':propertyPrefix+'value',
       '#arrow-simplification':propertyPrefix+'value',
       '#arrow-transparency':propertyPrefix+'value',
       '#arrow-snap':propertyPrefix+'checked',
       '#fill-circlefill':propertyPrefix+'checked',
-
 
       '#fill-bgcolor':propertyPrefix+'value',
       '#fill-margin':propertyPrefix+'value',

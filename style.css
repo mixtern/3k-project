@@ -49,6 +49,17 @@ input[type="number"], input[type="color"] {
   width:30px;
 }
 
+select {
+  /* General styling */
+  height: 30px;
+  width: 100%;
+  border-radius: 0;
+  padding-left: 10px;
+  margin-bottom: 10px;
+
+  font-size: 15pt;
+}
+
 /* MODE SWITCHES RELATED */
 
 .switch {
