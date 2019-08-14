@@ -1265,7 +1265,7 @@ function drawChordLabel(chord, ctx, x, y) {
  */
 function separateChordBaseAndExtension(wholeLabel) {
     
-    var matchResult = wholeLabel.match(/(MAJ)?[2-9]?/gmi);
+    var matchResult = wholeLabel.match(/(MAJ)?[2-9]?(add[2-9])?$/gmi);
     
     var ext = "";
     var basename = wholeLabel;
