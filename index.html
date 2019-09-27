@@ -10,9 +10,13 @@
     <script src="main.js"></script>
     <script src="keyboard.js"></script>
     <script src="tonal.js"></script>
-    <script src="FileSaver.js"></script>
-    <script src="Blob.js"></script>
-    <script src="canvas-toBlob.js"></script>
+    <script src="vendor/FileSaver.js"></script>
+    <script src="vendor/Blob.js"></script>
+    <script src="vendor/canvas-toBlob.js"></script>
+    <script src="midi.js"></script>
+    <script src="persist.js"></script>
+    <!--<script src="fretboard.js"></script>-->
+    <script src="label-overall.js"></script>
 
 </head>
 
@@ -79,7 +83,7 @@
         </div>
 
 
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
+        <label class="switch">
             <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
             <span class="slider">СТРЕЛКИ</span>
         </label>
@@ -123,7 +127,7 @@
             <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
             Размер
             <div class="rangeslidecontainer">
-                <input type="range" min="12" max="45" value="25" class="rangeslider" id="label-size"><br />
+                <input type="range" min="12" max="65" value="25" class="rangeslider" id="label-size"><br />
             </div>
 
             <input type="text" id="label-text" placeholder="Сюда текст">
@@ -132,6 +136,27 @@
             <span class="hint">
                 Hint: Shift - для поворота текста, Ctrl/Cmd - на произвольный угол
             </span>
+
+            <!-- checkbox only shown when Circle of Fifths canvas is active 
+                (via canvas-dependent canvas-dependent-circleOfFifths) -->
+                
+            <div class="canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="label-background-highlight">
+                Подсветка надписи сектором?<br /><br />
+            </div>
+
+            <div class="canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="label-override-co5-chord-name">
+                Вписать вместо названия аккорда?<br /><br />
+            </div>
+
+            <br />
+            <input type="text" id="overall-label-text" placeholder="Заголовок">
+            <select id="overall-label-placement">
+                <option value="top">Вверху</option>
+                <option value="bottom" selected>Внизу</option>
+            </select>
+            <input type="range" min="40" max="85" value="60" class="rangeslider" id="overall-label-size"><br />
 
             <button class="btn" onclick="removeLastLabel()">⮌</button>
             <button class="btn" onclick="removeAllLabels()">☠</button>
@@ -168,7 +193,7 @@
 
         </div>
         
-        <!-- AUX MIDI KEYBOARD -->
+        <!-- KEYBOARD -->
         <label class="switch">
             <input type="checkbox" id="mode-keyboard" onchange="changemode(this)">
             <span class="slider">КЛАВИШИ</span>
@@ -180,6 +205,16 @@
                     <input type="checkbox" id="keyboard-show" onchange="setKeyboardVisibility(this)">
                     <span class="slider">Показать</span>
             </label>
+
+            <input type="checkbox" id="keys-compressed" onchange="redraw()">
+            Сжатый вариант?<br /><br />
+
+            Подписать клавишу
+
+            <input type="text" id="label-text-for-key" placeholder="текст, затем ЛКМ">
+            <div class="validation" id="label-text-for-key-validation">Нужно вписать сюда какой-то текст!</div>
+
+            <button class="btn" onclick="removeKeyLabels()">☠</button>
         </div>
 
         <!-- HARMONIC HIGHLIGHT SELECTORS -->

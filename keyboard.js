@@ -17,12 +17,15 @@ window.addEventListener('load', function ()
         return false;
     },false);
 
+    avaliableContainerIds.push('keyboard');
+
 });
 
 
 var keyboardParameters = {
     keyWidth: 0.6,
     blackKeyWidth: 0.45,
+
     blackKeyHeight: 0.6,
     blackCOffset: 33 / 60.0,
 
@@ -32,6 +35,17 @@ var keyboardParameters = {
     topPadding: 0.1,
 
     keyMargin : 1,
+
+    isCompressed : false,
+
+    keyboardDefaultHeight : 500,
+    keyboardCompressedHeight: 250,
+
+    blackKeyHeightDefault: 0.6,
+    blackKeyHeightCompressed: 0.5,
+
+    keyWidthToHeightRatioDefault: 0.22779922779922779922779922779923,
+    keyWidthToHeightRatioCompressed: 0.4,
 
     keyWidthToHeightRatio: 0.22779922779922779922779922779923,
 };
@@ -108,8 +122,7 @@ var keys = [
 
 function setKeyboardVisibility(source) {
 
-    setCanvasVisibility('keyboard',source.checked);
-    setCanvasVisibility('circle_of_fifths',!source.checked);
+    showCanvasAccordingToMode(source.checked ? 'keyboard' : null);
 
     if (!source.checked)
     {
@@ -123,12 +136,14 @@ function setKeyboardVisibility(source) {
         'mode-basetone': function (x, y, canvas, evtype) { },
         'mode-alttone': function (x, y, canvas, evtype) { },
         'mode-chords': toggleKeyHighlight,
-        'mode-arrows': function (x, y, canvas, evtype) { },
-        'mode-labels': toggleKeyLabel,
+        'mode-arrows': createArrowsHandler,
+        'mode-labels': createLabelsHandler,
         'mode-fill': function (x, y, canvas, evtype) { },
         'mode-highlight': function (x, y, canvas, evtype) { },
-        'mode-keyboard': function (x, y, canvas, evtype) { }
+        'mode-keyboard': toggleKeyLabel
     };
+
+    removeAllLabels();
 
     drawKeyboard();
 }
@@ -230,6 +245,13 @@ function drawKeyLabels(key,ctx,x,y){
     var keyHeight = keyboard.clientHeight * key.height;
 
     var step = keyHeight / 6;
+    var offsetY = keyHeight * 0.7;
+   
+    if(keyboardParameters.isCompressed)
+    {
+        offsetY = key.isWhite ? keyHeight * 0.65 : keyHeight * 0.3;
+        step = key.isWhite ? (keyHeight / 4.5) : (keyHeight / 4);
+    }
 
     for(var i = 0;i!=key.labels.length;++i){
         if(key.labels[i] == null)
@@ -240,7 +262,7 @@ function drawKeyLabels(key,ctx,x,y){
         drawCircledLabel(key.labels[i],
             ctx,
             key.isWhite ? x + keyWidth/2 : x,
-            y + keyHeight* 0.7 + step*i,
+            y + offsetY + step*i,
             key.isWhite ? keyWidth * 0.9 :  keyWidth * 0.7,
             key.isWhite ? 'black' : 'white',
             key.isWhite ? 'white' : 'black');
@@ -288,9 +310,40 @@ function drawKeyHighlight(key,ctx,x,y){
     else{
         //Just solid
 
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.5;
         ctx.fillStyle = key.highlightColor;
     }
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.fill();
+
+    drawKeyHighlightAccentOverlay(key,ctx,x,y);
+
+}
+
+function drawKeyHighlightAccentOverlay(key,ctx,x,y){
+
+    //sharp countour
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = key.highlightColor;
+    ctx.lineWidth = 5;
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.stroke();     
+
+    //hairline
+
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = 'rgb(255,255,255)';
+    ctx.lineWidth = 2;
+
+    drawKeyOutlines(key,ctx,x,y);
+    ctx.stroke();
+
+}
+
+function drawKeyOutlines(key,ctx,x,y){
 
     if(key.isWhite){
         //Drawing WHITE key, (x,y) topleft
@@ -300,7 +353,7 @@ function drawKeyHighlight(key,ctx,x,y){
             key.width * keyboard.clientHeight * keyboardParameters.keyWidthToHeightRatio - keyboardParameters.keyMargin * 2,  
             keyboard.clientHeight-keyboardParameters.keyMargin * 2,5);
 
-        ctx.fill();
+        
     }
     else{
         //Drawing BLACK key, (x,y) topleft
@@ -311,7 +364,7 @@ function drawKeyHighlight(key,ctx,x,y){
             blackWidth,
             keyboard.clientHeight * keyboardParameters.blackKeyHeight,6);
 
-        ctx.fill();
+        
     }
 }
 
@@ -319,9 +372,28 @@ function drawKeyboard() {
 
     updateKeySize();
     keyboardDrawBase(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
+
+    //arrows, labels, etc
+    invokeModeIndependentRendereres(keyboard.ctx, keyboard.clientWidth, keyboard.clientHeight);
 }
 
 function updateKeySize() {
+    
+    if(keyboardParameters.isCompressed!=document.querySelector("#keys-compressed").checked)
+    {
+        keyboardParameters.isCompressed = document.querySelector("#keys-compressed").checked;
+        
+        //remove arrows & labels, because they dont get too well with rescaling :(
+
+        activeArrows = [];
+        activeLabels = [];
+    }
+
+
+    keyboard.height = keyboardParameters.isCompressed ? keyboardParameters.keyboardCompressedHeight : keyboardParameters.keyboardDefaultHeight;
+    keyboardParameters.keyWidthToHeightRatio = keyboardParameters.isCompressed ? keyboardParameters.keyWidthToHeightRatioCompressed : keyboardParameters.keyWidthToHeightRatioDefault; 
+    keyboardParameters.blackKeyHeight = keyboardParameters.isCompressed ? keyboardParameters.blackKeyHeightCompressed : keyboardParameters.blackKeyHeightDefault; 
+
     var height = keyboard.clientHeight;
     var width = 0;
 
@@ -405,6 +477,18 @@ function toggleKeyHighlight(x, y, cavnas,evtype) {
     drawKeyboard();
 }
 
+
+function removeKeyLabels()
+{
+    for (let key of keys)
+    {
+        key.labels = [null,null];
+    }
+    
+    redraw();
+}
+
+
 function toggleKeyLabel(x, y, cavnas,evtype) {
 
     if (evtype != 'mousedown')
@@ -429,15 +513,15 @@ function toggleKeyLabel(x, y, cavnas,evtype) {
             key.hitY2 > y;            
         });
 
-        if (document.querySelector("#label-text").value.length < 1) {
-        document.querySelector("#label-text-validation").style.display = 'block';
+        if (document.querySelector("#label-text-for-key").value.length < 1) {
+        document.querySelector("#label-text-for-key-validation").style.display = 'block';
         drawKeyboard();
         return;
     }
 
     document.querySelector("#label-text-validation").style.display = 'none';
 
-    var text = document.querySelector("#label-text").value;
+    var text = document.querySelector("#label-text-for-key").value;
 
     //Cycle highlihgt types
 
