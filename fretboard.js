@@ -6,9 +6,9 @@ var fretboardModeToken = 'mode-fretboard';
 var fretboardCanvasId = 'fretboard-canvas';
 
 var fretboardSettings = {
-    /* todo : settings and state for fretboard here */
-
-    widthToHeightRatio : 1.5,
+    /* TODO : settings and state for fretboard here */
+    stringState: ["muted","","","open","","open"],
+    widthToHeightRatio: 0.64,
 };
 
 /**
@@ -34,7 +34,7 @@ window.addEventListener('load', function () {
     //Insert canvas
 
     document.querySelector("#keyboard").insertAdjacentHTML('afterend', '<div id="fretboard" class="canvas-container" style="display:none">' +
-        '<canvas id="'+fretboardCanvasId+'" height="500"></canvas></div>');
+        '<canvas id="' + fretboardCanvasId + '" height="500"></canvas></div>');
 
     avaliableContainerIds.push('fretboard');   //container id actually
 
@@ -55,25 +55,24 @@ window.addEventListener('load', function () {
     fretboard = addModeListeners(document.getElementById(fretboardCanvasId));
 
     document.getElementById('mode-fretboard').addEventListener('change',
-    function (event) {
+        function (event) {
 
-        if (document.getElementById('mode-fretboard').checked) {
+            if (document.getElementById('mode-fretboard').checked) {
 
-            document.getElementById('fretboard-show').checked = true;
+                document.getElementById('fretboard-show').checked = true;
 
-            setFretboardVisibility(document.getElementById('fretboard-show'));
-        }
-        return false;
-    },false);
+                setFretboardVisibility(document.getElementById('fretboard-show'));
+            }
+            return false;
+        }, false);
 
 });
 
-function setFretboardVisibility(source) {    
-    
+function setFretboardVisibility(source) {
+
     showCanvasAccordingToMode(source.checked ? 'fretboard' : null);
 
-    if (!source.checked)
-    {
+    if (!source.checked) {
         redraw();
         return;
     }
@@ -85,23 +84,110 @@ function setFretboardVisibility(source) {
 function drawFretboard() {
 
     updateFretboardSize();
+    //updateFretboardState
     drawFretboardBase(fretboard.ctx, fretboard.clientWidth, fretboard.clientHeight);
+    drawStringStates(fretboard.ctx, fretboard.clientWidth, fretboard.clientHeight);
+    drawFingerPositions(fretboard.ctx, fretboard.clientWidth, fretboard.clientHeight);
+    drawNoteNames(fretboard.ctx, fretboard.clientWidth, fretboard.clientHeight);
 }
 
 function updateFretboardSize() {
     var height = fretboard.clientHeight;
 
-    /* todo : adapt to desired ratio */
+    /* TODO : adapt to desired ratio */
 
-    document.querySelector("#"+fretboardCanvasId).width = height * fretboardSettings.widthToHeightRatio;
+    document.querySelector("#" + fretboardCanvasId).width = height * fretboardSettings.widthToHeightRatio;
+}
+function drawStringStates(ctx, w, h) {
+    /* TODO : string states menu (open, muted, none)*/
+    ctx.fillStyle = 'black';
+    ctx.font = Math.round(0.1 * h).toString() + "px Times New Roman";
+    ctx.textAlign = 'center';
+    for (var i = 0; i < 6; i++) {
+        ctx.fillText(translateStringState(fretboardSettings.stringState[i]), 3 / 16 * w + 2 / 16 * w * i, 0.3 * h);
+    }
+}
+/*TODO: state type*/
+
+/**
+ * 
+ * @param {string} stateName 
+ */
+function translateStringState(stateName) {
+    switch (stateName) {
+        case "open":
+            return "○";
+        case "muted":
+            return "×"
+        default:
+            return "";
+    }
+}
+/**
+ * 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {int} w 
+ * @param {int} h 
+ */
+function drawFingerPositions(ctx,w,h){
+    // TODO custom finger positions
+    var fingerPositions = [{string:5,fret:3,finger:3},{string:4 ,fret:2,finger:2},{string:2,fret:1,finger:1}]
+    ctx.font = Math.round(0.06*h) + "px Times New Roman";
+    fingerPositions.forEach((position)=>{
+        var x = 13 / 16 * w - 1/8 * w * (position.string-1);
+        var y = 0.26 * h + 0.1*h*position.fret;
+        ctx.fillStyle="black";
+        ctx.beginPath();
+        ctx.arc(x,y,0.035 * h,0,Math.PI*2,false);
+        ctx.fill();
+        ctx.fillStyle="white";
+        ctx.fillText(position.finger,x,y + 0.02*h);
+    });
+ 
+    //❶ ❷ ❸ ❹ ❺
 }
 
-function drawFretboardBase(ctx, w, h) {
 
-    ctx.fillStyle = 'red';
+/**
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {int} w 
+ * @param {int} h 
+ */
+function drawFretboardBase(ctx, w, h) {
+    ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, w, h);
 
-    /* todo : draw fretboard! */
+    ctx.fillStyle = 'black';
+    ctx.font = Math.round(0.15 * h).toString() + "px Times New Roman";
+    ctx.textAlign = 'center';
+    ctx.fillText("C", 0.5 * w, 0.2 * h);
+
+    ctx.strokeRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.52 * h);
+    ctx.fillRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.02 * h);
+
+    ctx.beginPath();
+    for (var i = 1; i < 6; i++) {
+        ctx.moveTo(3 / 16 * w + 2 / 16 * w * i, 0.3 * h);
+        ctx.lineTo(3 / 16 * w + 2 / 16 * w * i, 0.82 * h);
+    }
+    for (var i = 1; i < 5; i++) {
+        ctx.moveTo(3 / 16 * w, 0.3 * h + 0.104 * h * i);
+        ctx.lineTo(13 / 16 * w, 0.3 * h + 0.104 * h * i);
+    }
+    ctx.stroke();
+}
+function drawNoteNames(ctx, w, h) {
+    var names = getNoteNames()
+    ctx.fillStyle = 'black';
+    ctx.font = Math.round(0.06 * h).toString() + "px Times New Roman";
+    ctx.textAlign = 'center';
+    for (var i = 0; i < 6; i++) {
+        ctx.fillText(names[i],3/16*w+2/16*w*i, 0.88*h);
+    }
+}
+function getNoteNames() {
+    return ["","C","E","G","C","E"]
+    /* TODO: note names */
 }
 
 function toggleFretHighlight(x, y, cavnas, evtype) {
@@ -109,12 +195,12 @@ function toggleFretHighlight(x, y, cavnas, evtype) {
     if (evtype != 'mousedown')
         return;
 
-    /* todo */
+    /* TODO */
 }
 
 function toggleFretLabel(x, y, cavnas, evtype) {
     if (evtype != 'mousedown')
         return;
 
-    /* todo */
+    /* TODO */
 }

@@ -403,7 +403,15 @@ function downloadImage() {
         }, "image/png");
         return;
     }
-
+    
+    if(document.querySelector("#fretboard").style.display != 'none')
+    {
+        fretboard.toBlob(function(blob) {
+            saveAs(blob, "FRET_"+Date.now()+".png");
+        }, "image/png");
+        return;
+    }
+    
     main.toBlob(function(blob) {
         saveAs(blob, "COF_"+Date.now()+".png");
     }, "image/png");
@@ -476,7 +484,7 @@ function showCanvasAccordingToMode(mode){
         setCanvasVisibility(avaliableContainerIds[i], avaliableContainerIds[i] == mode);          
 
         if(avaliableContainerIds[i]== mode) 
-            activeCanvasName = avaliableContainerIds[i];    //todo: multiple active containers
+            activeCanvasName = avaliableContainerIds[i];    //TODO: multiple active containers
     }
 }
 

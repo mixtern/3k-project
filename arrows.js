@@ -137,7 +137,7 @@ function drawArrows(ctx, width, height) {
                 ++endPoint;
             }
 
-            //todo: more specific LTR check
+            //TODO: more specific LTR check
             if (nRtl > nLtr)
                 header = header.split("").reverse().join("");
             
