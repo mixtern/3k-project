@@ -328,7 +328,10 @@ var chordDefinitions = [
 
 
 function marshalModeAction(x, y, canvas,evtype, code) {
-    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
+    console.log("evtype is "+ evtype)
+
+            availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
+
 }
 
 function redraw() {
@@ -387,6 +390,7 @@ window.addEventListener('load', function ()
 
     modeDependentRenderers['circle_of_fifths']= drawCircleOfFifths;
     modeDependentRenderers['keyboard']= drawKeyboard;
+    modeDependentRenderers['fretboard']=drawFretboard;
 
     redraw();
 });
