@@ -7,7 +7,7 @@ var fretboardCanvasId = 'fretboard-canvas';
 
 var fretboardSettings = {
     /* TODO : settings and state for fretboard here */
-    fingerPositions: [{string:5,fret:3,finger:3},{string:4 ,fret:2,finger:2},{string:2,fret:1,finger:1}],
+    fingerPositions: [],
     noteNames:[],
     chordName:"C",
     stringState: ["muted","","","open","","open"],
@@ -222,7 +222,7 @@ function switchStringState(string){
 }
 function handleNameClick(x,y){
     var h = fretboard.clientHeight;
-    if(h > 0.2*h)
+    if(y > 0.2*h)
         return;
     fretboardSettings.chordName = prompt("Имя аккорда");
 
