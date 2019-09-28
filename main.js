@@ -328,10 +328,7 @@ var chordDefinitions = [
 
 
 function marshalModeAction(x, y, canvas,evtype, code) {
-    console.log("evtype is "+ evtype)
-
-            availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
-
+    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
 }
 
 function redraw() {

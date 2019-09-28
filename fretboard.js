@@ -8,9 +8,9 @@ var fretboardCanvasId = 'fretboard-canvas';
 var fretboardSettings = {
     /* TODO : settings and state for fretboard here */
     fingerPositions: [],
-    noteNames:[],
-    chordName:"C",
-    stringState: ["muted","","","open","","open"],
+    noteNames: [],
+    chordName: "C",
+    stringState: ["muted", "", "", "open", "", "open"],
     widthToHeightRatio: 0.64,
 };
 
@@ -52,7 +52,7 @@ window.addEventListener('load', function () {
             'mode-fill': function (x, y, canvas, evtype) { /*nothing*/ },
             'mode-highlight': function (x, y, canvas, evtype) { /*nothing*/ },
             'mode-keyboard': function (x, y, canvas, evtype) {  /*nothing*/ },
-            'mode-fretboard': function (x, y, canvas, evtype) {  toggleFretHighlight(x,y,canvas,evtype) },
+            'mode-fretboard': function (x, y, canvas, evtype, code) { toggleFretHighlight(x, y, canvas, evtype, code) },
         };
 
     fretboard = addModeListeners(document.getElementById(fretboardCanvasId));
@@ -81,8 +81,8 @@ function setFretboardVisibility(source) {
     }
 
     fretboardSettings.noteNames = new Array(6).fill("");
-    prompt("Буквы нот внизу через пробел(вместо пустых -) слева направо").split(' ').forEach((name,i)=>{
-        fretboardSettings.noteNames[i] = name == "-" ? " ": name;
+    prompt("Буквы нот внизу через пробел(вместо пустых -) слева направо").split(' ').forEach((name, i) => {
+        fretboardSettings.noteNames[i] = name == "-" ? " " : name;
     })
     drawFretboard();
 }
@@ -136,19 +136,19 @@ function translateStringState(stateName) {
  * @param {int} w 
  * @param {int} h 
  */
-function drawFingerPositions(ctx,w,h){
-    ctx.font = Math.round(0.06*h) + "px Times New Roman";
-    fretboardSettings.fingerPositions.forEach((position)=>{
-        var x = 13 / 16 * w - 1/8 * w * (position.string-1);
-        var y = 0.26 * h + 0.1*h*position.fret;
-        ctx.fillStyle="black";
+function drawFingerPositions(ctx, w, h) {
+    ctx.font = Math.round(0.06 * h) + "px Times New Roman";
+    fretboardSettings.fingerPositions.forEach((position) => {
+        var x = 13 / 16 * w - 1 / 8 * w * (position.string - 1);
+        var y = 0.26 * h + 0.1 * h * position.fret;
+        ctx.fillStyle = "black";
         ctx.beginPath();
-        ctx.arc(x,y,0.035 * h,0,Math.PI*2,false);
+        ctx.arc(x, y, 0.035 * h, 0, Math.PI * 2, false);
         ctx.fill();
-        ctx.fillStyle="white";
-        ctx.fillText(position.finger,x,y + 0.02*h);
+        ctx.fillStyle = "white";
+        ctx.fillText(position.finger, x, y + 0.02 * h);
     });
- 
+
     //❶ ❷ ❸ ❹ ❺
 }
 
@@ -187,31 +187,31 @@ function drawNoteNames(ctx, w, h) {
     ctx.font = Math.round(0.06 * h).toString() + "px Times New Roman";
     ctx.textAlign = 'center';
     for (var i = 0; i < 6; i++) {
-        ctx.fillText(names[i],3/16*w+2/16*w*i, 0.88*h);
+        ctx.fillText(names[i], 3 / 16 * w + 2 / 16 * w * i, 0.88 * h);
     }
 }
-function handleFretClick(x,y){
+function handleFretClick(x, y) {
     var w = fretboard.clientWidth;
     var h = fretboard.clientHeight;
-    if(y>0.3*h && y<0.8*h && x > 0.125*w && x < 0.875*w){
+    if (y > 0.3 * h && y < 0.8 * h && x > 0.125 * w && x < 0.875 * w) {
         var finger = prompt("Номер пальца");
-        var fret = Math.round((y - 0.352*h)/(0.104*h))+1;
-        var string = 6-Math.round((7*x-w)/w);
-        fretboardSettings.fingerPositions.push({string,fret,finger});
+        var fret = Math.round((y - 0.352 * h) / (0.104 * h)) + 1;
+        var string = 6 - Math.round((7 * x - w) / w);
+        fretboardSettings.fingerPositions.push({ string, fret, finger });
     }
 }
-function handleMuteClick(x,y){
+function handleMuteClick(x, y) {
     var w = fretboard.clientWidth;
     var h = fretboard.clientHeight;
-    if(y > 0.2*h && y<0.3*h && x > 0.125*w && x < 0.875*w){
-        var string = Math.round((7*x-w)/w);
+    if (y > 0.2 * h && y < 0.3 * h && x > 0.125 * w && x < 0.875 * w) {
+        var string = Math.round((7 * x - w) / w);
         switchStringState(string);
     }
 }
-function switchStringState(string){
+function switchStringState(string) {
     var current = fretboardSettings.stringState[string]
     var newState = "";
-    switch(current){
+    switch (current) {
         case "open":
             newState = "muted";
             break;
@@ -220,22 +220,44 @@ function switchStringState(string){
     }
     fretboardSettings.stringState[string] = newState
 }
-function handleNameClick(x,y){
+function handleNameClick(x, y) {
     var h = fretboard.clientHeight;
-    if(y > 0.2*h)
+    if (y > 0.2 * h)
         return;
     fretboardSettings.chordName = prompt("Имя аккорда");
 
 }
+function handleFretRemoval(x, y) {
+    var w = fretboard.clientWidth;
+    var h = fretboard.clientHeight;
+    if (y > 0.3 * h && y < 0.8 * h && x > 0.125 * w && x < 0.875 * w) {
+        var fret = Math.round((y - 0.352 * h) / (0.104 * h)) + 1;
+        var string = 6 - Math.round((7 * x - w) / w);
+        var pos = fretboardSettings.fingerPositions.findIndex((pos) => {
+            return pos.string == string && pos.fret == fret
+        })
+        if (pos == -1)
+            return;
+        fretboardSettings.fingerPositions.splice(pos, 1)
+    }
+}
 
-function toggleFretHighlight(x, y, cavnas, evtype) {
-    console.log("trying on coordinates"+ x+ ":"+y + "evtype:"+evtype);
-    if (evtype != 'mousedown')
+function toggleFretHighlight(x, y, cavnas, evtype, code) {
+    console.log("trying on coordinates" + x + ":" + y + "evtype:" + evtype);
+
+    if (evtype != 'mousedown') {
         return;
-
-    handleFretClick(x,y);
-    handleMuteClick(x,y);
-    handleNameClick(x,y)
+    }
+    switch (code.button) {
+        case 0:
+            handleFretClick(x, y);
+            handleMuteClick(x, y);
+            handleNameClick(x, y);
+            break;
+        default:
+            code.preventDefault();
+            handleFretRemoval(x, y);
+    }
     redraw();
 }
 
