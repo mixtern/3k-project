@@ -7,6 +7,9 @@ var fretboardCanvasId = 'fretboard-canvas';
 
 var fretboardSettings = {
     /* TODO : settings and state for fretboard here */
+    fingerPositions: [{string:5,fret:3,finger:3},{string:4 ,fret:2,finger:2},{string:2,fret:1,finger:1}],
+    noteNames:[],
+    chordName:"",
     stringState: ["muted","","","open","","open"],
     widthToHeightRatio: 0.64,
 };
@@ -77,6 +80,33 @@ function setFretboardVisibility(source) {
         return;
     }
 
+    //TODO: PLEASE FIX THIS SHIT
+    fretboardSettings.chordName = prompt("Имя аккорда");
+
+    fretboardSettings.stringState = new Array(6).fill("");
+    prompt("Номера открытых струн без разделения").split('').forEach((n)=>{
+        fretboardSettings.stringState[parseInt(6-n)] = "open";
+    })
+    prompt("Номера ненужных струн без разделения").split('').forEach((n)=>{
+        fretboardSettings.stringState[parseInt(6-n)] = "muted";
+    })
+    fretboardSettings.noteNames = new Array(6).fill("");
+    prompt("Буквы нот внизу через пробел(вместо пустых -) слева направо").split(' ').forEach((name,i)=>{
+        fretboardSettings.noteNames[i] = name == "-" ? " ": name;
+    })
+    fretboardSettings.fingerPositions = [];
+    do{
+        input = prompt("Аппликкатура через пробел(струна, лад, палец)")
+        if(input !=""){
+            var parsed =[];
+            input.split(" ").forEach((n)=>{
+                parsed.push(n);
+            })
+            //fingerPositions: [{string:5,fret:3,finger:3},{string:4 ,fret:2,finger:2},{string:2,fret:1,finger:1}],
+            fretboardSettings.fingerPositions.push({string:parsed[0],fret:parsed[1],finger:parsed[2]});
+        }
+    } while (input != "")
+
     drawFretboard();
 }
 
@@ -130,10 +160,8 @@ function translateStringState(stateName) {
  * @param {int} h 
  */
 function drawFingerPositions(ctx,w,h){
-    // TODO custom finger positions
-    var fingerPositions = [{string:5,fret:3,finger:3},{string:4 ,fret:2,finger:2},{string:2,fret:1,finger:1}]
     ctx.font = Math.round(0.06*h) + "px Times New Roman";
-    fingerPositions.forEach((position)=>{
+    fretboardSettings.fingerPositions.forEach((position)=>{
         var x = 13 / 16 * w - 1/8 * w * (position.string-1);
         var y = 0.26 * h + 0.1*h*position.fret;
         ctx.fillStyle="black";
@@ -160,7 +188,7 @@ function drawFretboardBase(ctx, w, h) {
     ctx.fillStyle = 'black';
     ctx.font = Math.round(0.15 * h).toString() + "px Times New Roman";
     ctx.textAlign = 'center';
-    ctx.fillText("C", 0.5 * w, 0.2 * h);
+    ctx.fillText(fretboardSettings.chordName, 0.5 * w, 0.2 * h);
 
     ctx.strokeRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.52 * h);
     ctx.fillRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.02 * h);
@@ -177,17 +205,13 @@ function drawFretboardBase(ctx, w, h) {
     ctx.stroke();
 }
 function drawNoteNames(ctx, w, h) {
-    var names = getNoteNames()
+    var names = fretboardSettings.noteNames;
     ctx.fillStyle = 'black';
     ctx.font = Math.round(0.06 * h).toString() + "px Times New Roman";
     ctx.textAlign = 'center';
     for (var i = 0; i < 6; i++) {
         ctx.fillText(names[i],3/16*w+2/16*w*i, 0.88*h);
     }
-}
-function getNoteNames() {
-    return ["","C","E","G","C","E"]
-    /* TODO: note names */
 }
 
 function toggleFretHighlight(x, y, cavnas, evtype) {
