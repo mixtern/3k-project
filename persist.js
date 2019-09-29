@@ -37,6 +37,9 @@ var observer = new MutationObserver(function(mutations) {
       '#settings-width':propertyPrefix+'value',
   };
 
+  var persistedObjects = new Object();
+  var persistedObjectsCallbacks = new Object();
+
 window.addEventListener('load', function () {
     restoreState();
 
@@ -57,6 +60,11 @@ window.addEventListener('load', function () {
     redraw();
 });
 
+function persistObject(key, target, onRestored)
+{
+    persistedObjects[key] = target;
+    persistedObjectsCallbacks[key] = onRestored;
+}
 
 function saveState()
 {
@@ -74,8 +82,10 @@ function saveState()
         if(attributeOrProperty.startsWith(propertyPrefix))
             value = target[attributeOrProperty.substring(propertyPrefix.length)];
 
-        localStorage.setItem(storagePrefix+selector,JSON.stringify(value));
+        localStorage.setItem(storagePrefix+selector,JSON.stringify(value));        
     }
+
+    localStorage.setItem('states',JSON.stringify(persistedObjects));
 }
 
 function restoreState()
@@ -94,11 +104,32 @@ function restoreState()
 
         if(null == target)
             continue;
-
         
         if(attributeOrProperty.startsWith(propertyPrefix))
             target[attributeOrProperty.substring(propertyPrefix.length)] = value;
         else
             target.setAttribute(attributeOrProperty,value);
     }
+
+    var oldStates = localStorage.getItem('states');
+
+    if(undefined == oldStates)
+        return;
+
+    var restored = JSON.parse(oldStates);
+
+    for (var key in persistedObjects) {
+        
+        if(!restored.hasOwnProperty(key))
+            continue;
+        
+        Object.assign(persistedObjects[key],restored[key]);        
+    }
+
+    window.setTimeout(function() {
+        for (var key in persistedObjects) {
+            persistedObjectsCallbacks[key]();
+        }
+        return false;
+    },200); //hack
 }

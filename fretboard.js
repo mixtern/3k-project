@@ -51,6 +51,7 @@ window.addEventListener('load', function () {
         '<canvas id="' + fretboardCanvasId + '" height="500"></canvas></div>');
 
     avaliableContainerIds.push('fretboard');   //container id actually
+    modeDependentRenderers['fretboard'] = drawFretboard;
 
     //Register handlers for freboard mode
     availableModeFunctions[fretboardCanvasId] =
@@ -293,10 +294,9 @@ function switchStringState(stringNumber) {
 
 function toggleFretHighlight(x, y, cavnas, evtype, code) {
     
-
-    if (evtype != 'mousedown') {
+    if (evtype != 'mousedown') 
         return;
-    }
+    
     switch (code.button) {
         case 0:
             handleFretClick(x, y);
