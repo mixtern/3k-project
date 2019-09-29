@@ -2,8 +2,8 @@
 Fretboard drawing 
 */
 
-var fretboardModeToken = 'mode-fretboard';
-var fretboardCanvasId = 'fretboard-canvas';
+const fretboardModeToken = 'mode-fretboard';
+const fretboardCanvasId = 'fretboard-canvas';
 
 const stringStates = {muted:'muted',open:'open', pressed: 'pressed'};
 
@@ -68,10 +68,10 @@ window.addEventListener('load', function () {
 
     fretboard = addModeListeners(document.getElementById(fretboardCanvasId));
 
-    document.getElementById('mode-fretboard').addEventListener('change',
+    document.getElementById(fretboardModeToken).addEventListener('change',
         function (event) {
 
-            if (document.getElementById('mode-fretboard').checked) {
+            if (document.getElementById(fretboardModeToken).checked) {
 
                 document.getElementById('fretboard-show').checked = true;
 
