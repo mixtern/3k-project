@@ -6,6 +6,12 @@ const longboardModeToken = 'mode-longboard';
 const longboardCanvasId = 'longboard-canvas';
 
 var longboardSettings = {
+    colorScheme:{
+        deckColor:"#E4C69F",
+        deckBorderColor:"#603F18",
+        stringColor:"#E7E8E8",
+        fretColor:"#C0B151"
+    },
     currentFill : 'black',
     capoFret : 0,
     transparency: 0,
@@ -14,7 +20,7 @@ var longboardSettings = {
         finger:null,
         fret:0, 
         fill:'black'})),
-    widthToHeightRatio: 0.64,
+    widthToHeightRatio: 4,
 };
 
 persistObject('longboard-settings',longboardSettings, onLongboardSettingsRestored);
@@ -61,7 +67,7 @@ window.addEventListener('load', function () {
     //Insert canvas
 
     document.querySelector("#keyboard").insertAdjacentHTML('afterend', '<div id="longboard" class="canvas-container" style="display:none">' +
-        '<canvas id="' + longboardCanvasId + '" height="500"></canvas></div>');
+        '<canvas id="' + longboardCanvasId + '" height="250"></canvas></div>');
 
     avaliableContainerIds.push('longboard');   //container id actually
     modeDependentRenderers['longboard'] = drawLongboard;
@@ -130,6 +136,7 @@ function updateLongboardSize() {
 function drawLongboard() {
 
     drawLongboardBase(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
+    drawStrings(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     /*TODO: draw something else */
 }
 
@@ -144,26 +151,40 @@ function drawLongboardBase(ctx, w, h) {
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, w, h);
 
-    ctx.fillStyle = 'black';
-    ctx.font = Math.round(0.15 * h).toString() + "px Times New Roman";
-    ctx.textAlign = 'center';
+    ctx.fillStyle = longboardSettings.colorScheme.deckColor;
+    ctx.fillRect(1/75 * w, 0.15 * h, 73/75 * w, 0.7 * h);
+    
+    ctx.fillStyle = longboardSettings.colorScheme.deckBorderColor;
+    ctx.fillRect(1/75 * w, 0.15 * h, 2/75 * w, 0.7 * h);
 
-    ctx.strokeRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.52 * h);
-    ctx.fillRect(3 / 16 * w, 0.3 * h, 5 / 8 * w, 0.02 * h);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = longboardSettings.colorScheme.deckBorderColor;
+    ctx.strokeRect(1/75 * w, 0.15 * h, 73/75 * w, 0.7 * h);
 
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = longboardSettings.colorScheme.stringColor;
     ctx.beginPath();
-    for (var i = 1; i < 6; i++) {
-        ctx.moveTo(3 / 16 * w + 2 / 16 * w * i, 0.3 * h);
-        ctx.lineTo(3 / 16 * w + 2 / 16 * w * i, 0.82 * h);
-    }
-    for (var i = 1; i < 5; i++) {
-        ctx.moveTo(3 / 16 * w, 0.3 * h + 0.104 * h * i);
-        ctx.lineTo(13 / 16 * w, 0.3 * h + 0.104 * h * i);
+    for (var i = 0; i < 6; i++) {
+        ctx.moveTo(1/75*w, 0.25 * h + 0.1 * h * i);
+        ctx.lineTo(73/75*w, 0.25 * h + 0.1 * h * i);
     }
     ctx.stroke();
+
 }
 
+/**
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {int} w 
+ * @param {int} h 
+ */
+function drawStrings(ctx,w,h){
 
+    fretboardSettings.fretColor
+    for (var i = 0; i < 6; i++) {
+        ctx.moveTo(1/75*w, 0.25 * h + 0.1 * h * i);
+        ctx.lineTo(73/75*w, 0.25 * h + 0.1 * h * i);
+    }
+}
 
 function toggleLongboardFretHighlight(x, y, cavnas, evtype, code) {
     
