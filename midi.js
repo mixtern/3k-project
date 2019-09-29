@@ -35,8 +35,8 @@ window.addEventListener('load', function ()
     
     var element = document.createElement('template');
 
-    element.innerHTML = "<div style='position: fixed; bottom: 0; right: 0;width:220px; padding:5px; background:#eee'><label class='switch'><input type='checkbox' id='midi-switch' onchange='hookMidi(this)'>"+
-    "<span class='slider'>ВКЛЮЧИТЬ MIDI-ВХОД</span></label>"+
+    element.innerHTML = "<div style='position: fixed; bottom: 0; left: 0;width:34px; padding:5px; background:#eee'><label class='switch'><input type='checkbox' id='midi-switch' onchange='hookMidi(this)'>"+
+    "<img class='slider' src='img/midi.svg' style='width:40px;height:40px;padding:2px;'></span></label>"+
     "</div>";
 
     container.insertBefore(element.content.firstChild, document.querySelector("#circle_of_fifths"));
