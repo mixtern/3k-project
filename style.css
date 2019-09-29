@@ -7,9 +7,6 @@ html,body{
   height: 100%;
   width: 100%;
 }
-div{
-  display: inline-block;
-}
 
 img#clear{
   display: none;
@@ -19,6 +16,7 @@ img#clear{
 .canvas-container{
   align-items: center;
   display: flex;
+  flex: 1;
   justify-content: center;
 
   border:2px solid rgb(36, 56, 73);
@@ -29,7 +27,7 @@ img#clear{
   background:
   linear-gradient(90deg, #fff 10px, transparent 1%) center,
   linear-gradient(#fff 10px, transparent 1%) center,  #bbb;
-background-size: 11px 11px;
+  background-size: 11px 11px;
 }
 
 canvas#temp{
@@ -37,16 +35,19 @@ canvas#temp{
 }
 
 div#settings{
-  position: fixed; /* Set the navbar to fixed position */
-  top: 0; /* Position the navbar at the top of the page */
-  right: 0;
   width:286px;
-  float: right;
   padding: 10px;
   background: #eeeeee;
 }
+
 input[type="number"], input[type="color"] {
   width:30px;
+}
+
+#main-container{
+  display: flex;
+  justify-content: center;    /* Add this */
+  
 }
 
 select {

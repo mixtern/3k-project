@@ -23,273 +23,7 @@
 
 <body>
 
-    <!-- settings fixed menu -->
-    <div id="settings">
-
-        <!-- MODE SELECTORS -->
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
-            <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
-            <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-basetone-controls" style="display:block">
-            <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
-            Показывать сектор?<br />
-            <input type="checkbox" id="tonic-degree-enabled" checked onchange="redraw()">
-            Показывать ступени?<br />
-            Цвет
-            <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
-        </div>
-
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
-            <input type="checkbox" id="mode-alttone" onchange="changemode(this)">
-            <span class="slider">ДОП ТОНАЛЬНОСТЬ</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-alttone-controls" style="display:none">
-            <input type="checkbox" id="alt-enabled" onchange="redraw()">
-            Показывать сектор?<br />
-            Цвет
-            <input type="color" id="alt-color" value="#FF6F00" onchange="redraw()">
-        </div>
-
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
-            <input type="checkbox" id="mode-chords" onchange="changemode(this)">
-            <span class="slider">ПОДСВЕТКА</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-chords-controls" style="display: none">
-            Цвет
-            <input type="color" id="chord-color" value="#FFA726" onchange="redraw()"><br />
-            Тип подсветки аккорда / клавиши
-            <label class="switch">
-                <input type="checkbox" id="chordmode-sector" checked onchange="setChordmode(this)">
-                <span class="slider">Сектор</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="chordmode-fog" onchange="setChordmode(this)">
-                <span class="slider">Пыльца</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="chordmode-circle" onchange="setChordmode(this)">
-                <span class="slider">Кружок</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="chordmode-circle-double" onchange="setChordmode(this)">
-                <span class="slider">Двойной кружок</span>
-            </label>
-        </div>
-
-
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
-            <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
-            <span class="slider">СТРЕЛКИ</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-arrows-controls" style="display:none">
-            Цвет
-            <input type="color" id="arrow-color" value="#00AAFF" onchange="redraw()"><br />
-            Жирнота
-            <div class="rangeslidecontainer">
-                <input type="range" min="1" max="10" value="3" class="rangeslider" id="arrow-thickness"><br />
-            </div>
-            Гладкота
-            <div class="rangeslidecontainer">
-                <input type="range" min="10" max="5000" value="500" class="rangeslider" id="arrow-simplification"><br />
-            </div>
-            <input type="checkbox" id="arrow-snap" checked>
-            Начало-конец на аккордах?<br /><br />
-            Прозрачность
-            <div class="rangeslidecontainer">
-                <input type="range" min="0" max="80" value="0" class="rangeslider" id="arrow-transparency"><br />
-            </div>
-
-            <span class="hint">
-                Hint: Ctrl/Cmd+Click - для точного рисования
-            </span>
-
-            <button class="btn" onclick="removeLastArrow()">⮌</button>
-            <button class="btn" onclick="removeAllArrows()">☠</button>
-
-        </div>
-
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
-            <input type="checkbox" id="mode-labels" onchange="changemode(this)">
-            <span class="slider">ПОДПИСИ</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-labels-controls" style="display:none">
-            Цвет
-            <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
-            Размер
-            <div class="rangeslidecontainer">
-                <input type="range" min="12" max="65" value="25" class="rangeslider" id="label-size"><br />
-            </div>
-
-            <input type="text" id="label-text" placeholder="Сюда текст">
-            <div class="validation" id="label-text-validation">Нужно вписать сюда какой-то текст!</div>
-
-            <span class="hint">
-                Hint: Shift - для поворота текста, Ctrl/Cmd - на произвольный угол
-            </span>
-
-            <!-- checkbox only shown when Circle of Fifths canvas is active 
-                (via canvas-dependent canvas-dependent-circleOfFifths) -->
-                
-            <div class="canvas-dependent canvas-dependent-circleOfFifths">
-                <input type="checkbox" id="label-background-highlight">
-                Подсветка надписи сектором?<br /><br />
-            </div>
-
-            <div class="canvas-dependent canvas-dependent-circleOfFifths">
-                <input type="checkbox" id="label-override-co5-chord-name">
-                Вписать вместо названия аккорда?<br /><br />
-            </div>
-
-            <br />
-            <input type="text" id="overall-label-text" placeholder="Заголовок">
-            <select id="overall-label-placement">
-                <option value="top">Вверху</option>
-                <option value="bottom" selected>Внизу</option>
-            </select>
-            <input type="range" min="40" max="85" value="60" class="rangeslider" id="overall-label-size"><br />
-
-            <button class="btn" onclick="removeLastLabel()">⮌</button>
-            <button class="btn" onclick="removeAllLabels()">☠</button>
-
-        </div>
-
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
-            <input type="checkbox" id="mode-fill" onchange="changemode(this)">
-            <span class="slider">ВНЕШНИЙ ВИД</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-fill-controls" style="display:none">
-            Цвет
-            <input type="color" id="fill-bgcolor" value="#FFFFFF" onchange="redraw()"><br />
-
-            <input type="checkbox" id="fill-circlefill" checked onchange="redraw()">
-            Заливка - круг?<br /><br />
-
-            Отступ
-            <div class="rangeslidecontainer">
-                <input type="range" min="1" max="70" value="10" class="rangeslider" id="fill-margin" onchange="redraw()"><br />
-            </div>
-
-            <input type="checkbox" id="fill-whiten" checked onchange="redraw()">
-            Светлый фон?<br /><br />
-
-            <input type="checkbox" id="ui-bold" checked onchange="redraw()">
-            Жирная версия?<br /><br />
-
-            Ширина картинки в пикселях<br /><br />
-            <input type="text" id="settings-width" placeholder="Ширина картинки в пикселях" onchange="redraw()">
-            <button class="btn" onclick="redraw()">Change!</button>
-
-        </div>
-        
-        <!-- KEYBOARD -->
-        <label class="switch">
-            <input type="checkbox" id="mode-keyboard" onchange="changemode(this)">
-            <span class="slider">КЛАВИШИ</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-keyboard-controls">
-            <label class="switch">
-                    <input type="checkbox" id="keyboard-show" onchange="setKeyboardVisibility(this)">
-                    <span class="slider">Показать</span>
-            </label>
-
-            <input type="checkbox" id="keys-compressed" onchange="redraw()">
-            Сжатый вариант?<br /><br />
-
-            Подписать клавишу
-
-            <input type="text" id="label-text-for-key" placeholder="текст, затем ЛКМ">
-            <div class="validation" id="label-text-for-key-validation">Нужно вписать сюда какой-то текст!</div>
-
-            <button class="btn" onclick="removeKeyLabels()">☠</button>
-        </div>
-
-        <!-- HARMONIC HIGHLIGHT SELECTORS -->
-        <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
-            <input type="checkbox" id="mode-highlight" onchange="changemode(this)">
-            <span class="slider">ГАРМОНИЧЕСКИЙ ОКРАС</span>
-        </label>
-
-        <!-- mode-realted controls (display: toggled in JS) -->
-        <div class="mode-dependent" id="mode-highlight-controls">
-
-            Как подсвечивать?
-
-            <label class="switch">
-                <input type="checkbox" id="highlightmode-none" checked onchange="setHighlightMode(this)">
-                <span class="slider">Никак</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="highlightmode-modes" onchange="setHighlightMode(this)">
-                <span class="slider">Лады</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="highlightmode-linear" onchange="setHighlightMode(this)">
-                <span class="slider">Линейно</span>
-            </label>
-            <label class="switch">
-                <input type="checkbox" id="highlightmode-psychoaffective" onchange="setHighlightMode(this)">
-                <span class="slider">Психоаффективная модуляция</span>
-            </label>
-
-            <!-- related legends -->
-
-            <div class="legends">
-                <div id="highlightmode-modes-legend" style="display: none">
-                    Простая подсветка ладов:<br />
-
-                    <div class="colorsample" id="color-ionian" style="background: green"></div>ionian<br />
-                    <div class="colorsample" id="color-dorian" style="background: #FF1744"></div>dorian<br />
-                    <div class="colorsample" id="color-Phrygian" style="background: #FFEE58"></div>Phrygian<br />
-                    <div class="colorsample" id="color-Lydian" style="background: orange"></div>Lydian<br />
-                    <div class="colorsample" id="color-Mixolydian" style="background: #239dff"></div>Mixolydian<br />
-                    <div class="colorsample" id="color-Aeolian" style="background: #6c00ff"></div>Aeolian<br />
-                    <div class="colorsample" id="color-Locrian" style="background: cyan"></div>Locrian<br />
-
-
-                </div>
-
-                <div id="highlightmode-linear-legend" style="display: none">
-                    Линейная подсветка для оценки характера заимствования аккорда в выбранную тональность. По часовой
-                    по кругу — яркие, против - холодные, и чем дальше от основной тональности, тем слабее связь, что
-                    выражается в ширине заливки
-                </div>
-
-
-                <div id="highlightmode-psychoaffective-legend" style="display: none;font-size: 10pt">
-                    Субъективное качество модуляций согласно работе <small>[Корсакова, W.J. Dowling, 2014] DOI:
-                        10.1037/pmu0000029</small><br />
-                    <b>
-                        Оранжевый цвет обозначает модуляцию как «теплую/счастливую» и чем насыщеннее сам цвет - тем
-                        «теплее» модуляция.
-                        Синий это наоборот, когда субъективно переход ощущался «холодным-грустным».
-                        <br /><br />
-                        Ширина заливки - то, как слушатели оценивают «тяготение» модуляции - широкая заливка значит
-                        сильное-устойчивое, узкая - слабое-неустойчивое
-                    </b>
-
-                </div>
-            </div>
-
-        </div>
-
-        <button class="btn" onclick="downloadImage()">↓Download↓</button>
-    </div>
-
+    <div id="main-container">
 
     <!-- circle of fifths -->
     <div id="circle_of_fifths" class="canvas-container">
@@ -299,6 +33,276 @@
     <!-- midi-like keyboard -->
     <div id="keyboard" class="canvas-container" style="display:none">
         <canvas id="keyboard-canvas" height="500"></canvas>
+    </div>
+
+        <!-- settings fixed menu -->
+        <div id="settings">
+
+            <!-- MODE SELECTORS -->
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="mode-basetone" checked onchange="changemode(this)">
+                <span class="slider">ОСНОВНАЯ ТОНАЛЬНОСТЬ</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-basetone-controls" style="display:block">
+                <input type="checkbox" id="tonic-enabled" checked onchange="redraw()">
+                Показывать сектор?<br />
+                <input type="checkbox" id="tonic-degree-enabled" checked onchange="redraw()">
+                Показывать ступени?<br />
+                Цвет
+                <input type="color" id="tonic-color" value="#00AAFF" onchange="redraw()">
+            </div>
+    
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="mode-alttone" onchange="changemode(this)">
+                <span class="slider">ДОП ТОНАЛЬНОСТЬ</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-alttone-controls" style="display:none">
+                <input type="checkbox" id="alt-enabled" onchange="redraw()">
+                Показывать сектор?<br />
+                Цвет
+                <input type="color" id="alt-color" value="#FF6F00" onchange="redraw()">
+            </div>
+    
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
+                <input type="checkbox" id="mode-chords" onchange="changemode(this)">
+                <span class="slider">ПОДСВЕТКА</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-chords-controls" style="display: none">
+                Цвет
+                <input type="color" id="chord-color" value="#FFA726" onchange="redraw()"><br />
+                Тип подсветки аккорда / клавиши
+                <label class="switch">
+                    <input type="checkbox" id="chordmode-sector" checked onchange="setChordmode(this)">
+                    <span class="slider">Сектор</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="chordmode-fog" onchange="setChordmode(this)">
+                    <span class="slider">Пыльца</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="chordmode-circle" onchange="setChordmode(this)">
+                    <span class="slider">Кружок</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="chordmode-circle-double" onchange="setChordmode(this)">
+                    <span class="slider">Двойной кружок</span>
+                </label>
+            </div>
+    
+    
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
+                <input type="checkbox" id="mode-arrows" onchange="changemode(this)">
+                <span class="slider">СТРЕЛКИ</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-arrows-controls" style="display:none">
+                Цвет
+                <input type="color" id="arrow-color" value="#00AAFF" onchange="redraw()"><br />
+                Жирнота
+                <div class="rangeslidecontainer">
+                    <input type="range" min="1" max="10" value="3" class="rangeslider" id="arrow-thickness"><br />
+                </div>
+                Гладкота
+                <div class="rangeslidecontainer">
+                    <input type="range" min="10" max="5000" value="500" class="rangeslider" id="arrow-simplification"><br />
+                </div>
+                <input type="checkbox" id="arrow-snap" checked>
+                Начало-конец на аккордах?<br /><br />
+                Прозрачность
+                <div class="rangeslidecontainer">
+                    <input type="range" min="0" max="80" value="0" class="rangeslider" id="arrow-transparency"><br />
+                </div>
+    
+                <span class="hint">
+                    Hint: Ctrl/Cmd+Click - для точного рисования
+                </span>
+    
+                <button class="btn" onclick="removeLastArrow()">⮌</button>
+                <button class="btn" onclick="removeAllArrows()">☠</button>
+    
+            </div>
+    
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths canvas-dependent-keyboard-canvas">
+                <input type="checkbox" id="mode-labels" onchange="changemode(this)">
+                <span class="slider">ПОДПИСИ</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-labels-controls" style="display:none">
+                Цвет
+                <input type="color" id="label-color" value="#333333" onchange="redraw()"><br />
+                Размер
+                <div class="rangeslidecontainer">
+                    <input type="range" min="12" max="65" value="25" class="rangeslider" id="label-size"><br />
+                </div>
+    
+                <input type="text" id="label-text" placeholder="Сюда текст">
+                <div class="validation" id="label-text-validation">Нужно вписать сюда какой-то текст!</div>
+    
+                <span class="hint">
+                    Hint: Shift - для поворота текста, Ctrl/Cmd - на произвольный угол
+                </span>
+    
+                <!-- checkbox only shown when Circle of Fifths canvas is active 
+                    (via canvas-dependent canvas-dependent-circleOfFifths) -->
+                    
+                <div class="canvas-dependent canvas-dependent-circleOfFifths">
+                    <input type="checkbox" id="label-background-highlight">
+                    Подсветка надписи сектором?<br /><br />
+                </div>
+    
+                <div class="canvas-dependent canvas-dependent-circleOfFifths">
+                    <input type="checkbox" id="label-override-co5-chord-name">
+                    Вписать вместо названия аккорда?<br /><br />
+                </div>
+    
+                <br />
+                <input type="text" id="overall-label-text" placeholder="Заголовок">
+                <select id="overall-label-placement">
+                    <option value="top">Вверху</option>
+                    <option value="bottom" selected>Внизу</option>
+                </select>
+                <input type="range" min="40" max="85" value="60" class="rangeslider" id="overall-label-size"><br />
+    
+                <button class="btn" onclick="removeLastLabel()">⮌</button>
+                <button class="btn" onclick="removeAllLabels()">☠</button>
+    
+            </div>
+    
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="mode-fill" onchange="changemode(this)">
+                <span class="slider">ВНЕШНИЙ ВИД</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-fill-controls" style="display:none">
+                Цвет
+                <input type="color" id="fill-bgcolor" value="#FFFFFF" onchange="redraw()"><br />
+    
+                <input type="checkbox" id="fill-circlefill" checked onchange="redraw()">
+                Заливка - круг?<br /><br />
+    
+                Отступ
+                <div class="rangeslidecontainer">
+                    <input type="range" min="1" max="70" value="10" class="rangeslider" id="fill-margin" onchange="redraw()"><br />
+                </div>
+    
+                <input type="checkbox" id="fill-whiten" checked onchange="redraw()">
+                Светлый фон?<br /><br />
+    
+                <input type="checkbox" id="ui-bold" checked onchange="redraw()">
+                Жирная версия?<br /><br />
+    
+                Ширина картинки в пикселях<br /><br />
+                <input type="text" id="settings-width" placeholder="Ширина картинки в пикселях" onchange="redraw()">
+                <button class="btn" onclick="redraw()">Change!</button>
+    
+            </div>
+            
+            <!-- KEYBOARD -->
+            <label class="switch">
+                <input type="checkbox" id="mode-keyboard" onchange="changemode(this)">
+                <span class="slider">КЛАВИШИ</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-keyboard-controls">
+                <label class="switch">
+                        <input type="checkbox" id="keyboard-show" onchange="setKeyboardVisibility(this)">
+                        <span class="slider">Показать</span>
+                </label>
+    
+                <input type="checkbox" id="keys-compressed" onchange="redraw()">
+                Сжатый вариант?<br /><br />
+    
+                Подписать клавишу
+    
+                <input type="text" id="label-text-for-key" placeholder="текст, затем ЛКМ">
+                <div class="validation" id="label-text-for-key-validation">Нужно вписать сюда какой-то текст!</div>
+    
+                <button class="btn" onclick="removeKeyLabels()">☠</button>
+            </div>
+    
+            <!-- HARMONIC HIGHLIGHT SELECTORS -->
+            <label class="switch canvas-dependent canvas-dependent-circleOfFifths">
+                <input type="checkbox" id="mode-highlight" onchange="changemode(this)">
+                <span class="slider">ГАРМОНИЧЕСКИЙ ОКРАС</span>
+            </label>
+    
+            <!-- mode-realted controls (display: toggled in JS) -->
+            <div class="mode-dependent" id="mode-highlight-controls">
+    
+                Как подсвечивать?
+    
+                <label class="switch">
+                    <input type="checkbox" id="highlightmode-none" checked onchange="setHighlightMode(this)">
+                    <span class="slider">Никак</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="highlightmode-modes" onchange="setHighlightMode(this)">
+                    <span class="slider">Лады</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="highlightmode-linear" onchange="setHighlightMode(this)">
+                    <span class="slider">Линейно</span>
+                </label>
+                <label class="switch">
+                    <input type="checkbox" id="highlightmode-psychoaffective" onchange="setHighlightMode(this)">
+                    <span class="slider">Психоаффективная модуляция</span>
+                </label>
+    
+                <!-- related legends -->
+    
+                <div class="legends">
+                    <div id="highlightmode-modes-legend" style="display: none">
+                        Простая подсветка ладов:<br />
+    
+                        <div class="colorsample" id="color-ionian" style="background: green"></div>ionian<br />
+                        <div class="colorsample" id="color-dorian" style="background: #FF1744"></div>dorian<br />
+                        <div class="colorsample" id="color-Phrygian" style="background: #FFEE58"></div>Phrygian<br />
+                        <div class="colorsample" id="color-Lydian" style="background: orange"></div>Lydian<br />
+                        <div class="colorsample" id="color-Mixolydian" style="background: #239dff"></div>Mixolydian<br />
+                        <div class="colorsample" id="color-Aeolian" style="background: #6c00ff"></div>Aeolian<br />
+                        <div class="colorsample" id="color-Locrian" style="background: cyan"></div>Locrian<br />
+    
+    
+                    </div>
+    
+                    <div id="highlightmode-linear-legend" style="display: none">
+                        Линейная подсветка для оценки характера заимствования аккорда в выбранную тональность. По часовой
+                        по кругу — яркие, против - холодные, и чем дальше от основной тональности, тем слабее связь, что
+                        выражается в ширине заливки
+                    </div>
+    
+    
+                    <div id="highlightmode-psychoaffective-legend" style="display: none;font-size: 10pt">
+                        Субъективное качество модуляций согласно работе <small>[Корсакова, W.J. Dowling, 2014] DOI:
+                            10.1037/pmu0000029</small><br />
+                        <b>
+                            Оранжевый цвет обозначает модуляцию как «теплую/счастливую» и чем насыщеннее сам цвет - тем
+                            «теплее» модуляция.
+                            Синий это наоборот, когда субъективно переход ощущался «холодным-грустным».
+                            <br /><br />
+                            Ширина заливки - то, как слушатели оценивают «тяготение» модуляции - широкая заливка значит
+                            сильное-устойчивое, узкая - слабое-неустойчивое
+                        </b>
+    
+                    </div>
+                </div>
+    
+            </div>
+    
+            <button class="btn" onclick="downloadImage()">↓Download↓</button>
+        </div>
+    
+
     </div>
 
 </body>
