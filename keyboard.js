@@ -140,6 +140,7 @@ function setKeyboardVisibility(source) {
         'mode-labels': createLabelsHandler,
         'mode-fill': function (x, y, canvas, evtype) { },
         'mode-highlight': function (x, y, canvas, evtype) { },
+        'mode-fretboard': function (x, y, canvas, evtype, code) { },
         'mode-keyboard': toggleKeyLabel
     };
 
