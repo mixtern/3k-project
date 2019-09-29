@@ -10,8 +10,9 @@ const stringStates = {muted:'muted',open:'open', pressed: 'pressed'};
 var fretboardSettings = {
     guitarTuningChromatic: [4,9,2,7,11,4], //EADGBE
     chordName: "Chord",
+    fingerFill : 'black',
     capoFret: 0,
-    stringState:new Array(6).fill(null).map(()=>({state:"open",finger:null,fret:0})),
+    stringState:new Array(6).fill(null).map(()=>({state:"open",finger:null,fret:0, fill:'black'})),
     widthToHeightRatio: 0.64,
 };
 
@@ -33,6 +34,8 @@ window.addEventListener('load', function () {
         "<input type='text' id='fretboard-chord-name' placeholder='Название аккорда' "+
         "onchange='updateFretboardSettingsFromUI()' "+
         "onKeyUp='updateFretboardSettingsFromUI()'>"+
+        "Подсветка номера пальца"+
+        "<input type='color' id='fill-fretboard-finger-color' value='#000000' onchange='updateFretboardSettingsFromUI()'><br /><br />"+
         "<input type='text' id='fretboard-capo-number' placeholder='Номер лада с каподастром' "+
         "onchange='updateFretboardSettingsFromUI()' "+
         "onKeyUp='updateFretboardSettingsFromUI()'>"+
@@ -40,7 +43,7 @@ window.addEventListener('load', function () {
 
     lastchild.insertAdjacentHTML('afterend', "<label class='switch'>" +
         "<input type='checkbox' id='" + fretboardModeToken + "' onchange='changemode(this)'>" +
-        "<span class='slider'>ГИТАРНЫЙ ГРИФ</span></label>");
+        "<span class='slider'>АППЛИКАТУРЫ</span></label>");
 
     //Insert canvas
 
@@ -82,6 +85,7 @@ window.addEventListener('load', function () {
 function updateFretboardSettingsFromUI(){
 
     fretboardSettings.chordName = document.querySelector('#fretboard-chord-name').value;
+    fretboardSettings.fingerFill = document.querySelector('#fill-fretboard-finger-color').value;
     fretboardSettings.capoFret = parseInt(document.querySelector('#fretboard-capo-number').value);
 
     if(fretboardSettings.chordName == null || fretboardSettings.chordName == "")
@@ -167,7 +171,7 @@ function drawFingerPositions(ctx, w, h) {
 
         var x = 3 / 16 * w + 2 / 16 * w * i;
         var y = 0.26 * h + 0.1 * h * gutarString.fret;
-        ctx.fillStyle = "black";
+        ctx.fillStyle = gutarString.fill;
         ctx.beginPath();
         ctx.arc(x, y, 0.035 * h, 0, Math.PI * 2, false);
         ctx.fill();
@@ -256,6 +260,7 @@ function handleFretClick(x, y) {
         clickedString.state = stringStates.pressed;
         clickedString.finger = finger;
         clickedString.fret = fret;       
+        clickedString.fill = fretboardSettings.fingerFill;
     }
 }
 function handleMuteClick(x, y) {
