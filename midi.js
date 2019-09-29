@@ -31,7 +31,7 @@ var midiSettings ={
 
 window.addEventListener('load', function () 
 {
-    var container = document.querySelector("body");
+    var container = document.querySelector("#main-container");
     
     var element = document.createElement('template');
 
