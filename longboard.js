@@ -12,6 +12,7 @@ var longboardState = {
     stringState: new Array(6).fill(null).map(() => ({
         state: "open",
         finger: null,
+        opacity: 1,
         fret: 0,
         fill: 'black'
     })),
@@ -52,7 +53,6 @@ function onLongboardStateRestored() {
 
 window.addEventListener('load', function () {
     var lastchild = document.querySelector("#mode-keyboard-controls");
-
 
     var element = document.createElement('template');
 
@@ -180,27 +180,38 @@ function drawLongboard() {
 function drawFingers(ctx, w, h) {
     var hp = w / longboardSettings.horizontalParts;
 
-    ctx.font = Math.round(0.06 * h) + "px Times New Roman";
+    ctx.font = Math.round(0.06 * h) + "px Arial black";
 
     for (let i = 0; i < longboardState.stringState.length; i++) {
-        const gutarString = longboardState.stringState[i];
+        const guitarString = longboardState.stringState[i];
 
         //Open or Muted - not our fingering case
-        if (gutarString.state != stringStates.pressed)
+        if (guitarString.state != stringStates.pressed)
             continue;
 
         var fretStep = longboardSettings.proportions.fretWidth;
         var fretOffset = longboardSettings.proportions.horizontalPadding + longboardSettings.proportions.nutWidth + longboardSettings.proportions.fretWidth / 2;
         
-        var x = ((gutarString.fret-1) * fretStep + fretOffset) * hp;
+        var fret = guitarString.fret - longboardState.capoFret -1;
+
+        if(fret < 0)
+            continue;
+     
+        var x = (fret * fretStep + fretOffset) * hp;
+
         var y = 0.25 * h + 0.1 * h * i;
-        ctx.fillStyle = gutarString.fill;
+
+        var tAlpha = ctx.globalAlpha;
+
+        ctx.globalAlpha = guitarString.opacity;
+        ctx.fillStyle = guitarString.fill;    
         ctx.beginPath();
         ctx.arc(x, y, 0.05*h, 0, Math.PI * 2, false);
         ctx.fill();
+        ctx.globalAlpha = tAlpha;
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
-        ctx.fillText(gutarString.finger, x, y + 0.02 * h);
+        ctx.fillText(guitarString.finger, x, y + 0.02 * h);
     }
 }
 
@@ -289,10 +300,10 @@ function drawStrings(ctx, w, h) {
 }
 
 function handleLongboardFretClick(x, y) {
-    var Position = getClickPosition(x, y);
-    if (Position == null)
+    var clickPosition = getClickPosition(x, y);
+    if (clickPosition == null)
         return;
-    var clickedString = longboardState.stringState[Position.string];
+    var clickedString = longboardState.stringState[clickPosition.string];
     //Remove finger
 
     if (clickedString.state == stringStates.pressed) {
@@ -303,13 +314,16 @@ function handleLongboardFretClick(x, y) {
 
     //Add finger
 
-    var finger = prompt("Номер пальца");
+    var finger = prompt("Подпись");
 
     clickedString.state = stringStates.pressed;
     clickedString.finger = finger;
-    clickedString.fret = Position.fret;
-    clickedString.fill = "black";
+    clickedString.fret = clickPosition.fret +  longboardState.capoFret;
+    clickedString.fill = longboardState.currentFill;
+    clickedString.opacity = 1 - (longboardState.transparency/100);
     //TODO add finger color to longboard
+
+    saveState();
 }
 
 function getClickPosition(x, y) {
