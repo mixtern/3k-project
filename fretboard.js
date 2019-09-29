@@ -120,8 +120,7 @@ function drawStringStates(ctx, w, h) {
  * 
  * @param {string} stateName 
  */
-function translateStringState(stateName,string) {
-    console("getting state of string " + string);
+function translateStringState(stateName,string) {    
     switch (stateName) {
         case "muted":
             return "×"
@@ -201,8 +200,7 @@ function updateNoteNames() {
 
 }
 function getFinger(string) {
-    console.log("getting string state of " + string);
-    fretboardSettings.stringState.forEach(state => {
+        fretboardSettings.stringState.forEach(state => {
         if(state.string == string)
             return state.finger;
     });
@@ -239,7 +237,7 @@ function switchStringState(string) {
             break;
         
     }
-    console.log("switching state from " +current+" to" + newState);
+    
     fretboardSettings.stringState[string] = newState
 }
 function handleNameClick(x, y) {
@@ -265,7 +263,7 @@ function handleFretRemoval(x, y) {
 }
 
 function toggleFretHighlight(x, y, cavnas, evtype, code) {
-    console.log("trying on coordinates" + x + ":" + y + "evtype:" + evtype);
+    
 
     if (evtype != 'mousedown') {
         return;

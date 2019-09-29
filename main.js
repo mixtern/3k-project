@@ -480,13 +480,13 @@ function showCanvasAccordingToMode(mode){
     if(mode == null)
         mode = avaliableContainerIds[0];
 
-    for(var i=0;i!=avaliableContainerIds.length;++i)
-    {
-        setCanvasVisibility(avaliableContainerIds[i], avaliableContainerIds[i] == mode);          
-
-        if(avaliableContainerIds[i]== mode) 
-            activeCanvasName = avaliableContainerIds[i];    //TODO: multiple active containers
-    }
+    //Turn off inactive containers
+    avaliableContainerIds.filter(ctnr=>ctnr!=mode).forEach(ctnr=>setCanvasVisibility(ctnr, false));
+    //Turn on containers
+    avaliableContainerIds.filter(ctnr=>ctnr==mode).forEach(ctnr=>{
+        setCanvasVisibility(ctnr, true);
+        activeCanvasName=ctnr; //TODO: multiple active containers
+    });
 }
 
 function setCanvasVisibility(containerId,isVisible){
