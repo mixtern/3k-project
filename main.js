@@ -415,6 +415,14 @@ function downloadImage() {
         }, "image/png");
         return;
     }
+
+    if(document.querySelector("#longboard").style.display != 'none')
+    {
+        longboard.toBlob(function(blob) {
+            saveAs(blob, "FRETHORIZ_"+Date.now()+".png");
+        }, "image/png");
+        return;
+    }
     
     main.toBlob(function(blob) {
         saveAs(blob, "COF_"+Date.now()+".png");

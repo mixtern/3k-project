@@ -5,8 +5,20 @@ longboard drawing
 const longboardModeToken = 'mode-longboard';
 const longboardCanvasId = 'longboard-canvas';
 
+var longboardState = {
+    currentFill: 'black',
+    capoFret: 0,
+    transparency: 0,
+    stringState: new Array(6).fill(null).map(() => ({
+        state: "open",
+        finger: null,
+        fret: 0,
+        fill: 'black'
+    })),
+    
+};
 
-var longboardSettings = {
+var longboardSettings={
     colorScheme: {
         neckColor: "#E4C69F",
         neckBorderColor: "#603F18",
@@ -23,23 +35,14 @@ var longboardSettings = {
     },
     verticalParts: 0,
     horizontalParts: 0,
-    fretNumber: 24,
-    currentFill: 'black',
-    capoFret: 0,
-    transparency: 0,
-    stringState: new Array(6).fill(null).map(() => ({
-        state: "open",
-        finger: null,
-        fret: 0,
-        fill: 'black'
-    })),
+    fretCount: 24,
     widthToHeightRatio: 4,
 };
 
-persistObject('longboard-settings', longboardSettings, onLongboardSettingsRestored);
+persistObject('longboard-state', longboardState, onLongboardStateRestored);
 
 //Called after deserialization
-function onLongboardSettingsRestored() {
+function onLongboardStateRestored() {
     //TODO: use if needed
 }
 
@@ -63,12 +66,12 @@ window.addEventListener('load', function () {
         "<input type='color' id='fill-longboard-finger-color' value='#000000' onchange='updateLongboardSettingsFromUI()'><br /><br />" +
         "Номер лада с каподастром " +
         "<input type='text' id='longboard-capo-number' " +
-        "value = '" + longboardSettings.capoFret + "' " +
+        "value = '" + longboardState.capoFret + "' " +
         "onchange='updateLongboardSettingsFromUI()' " +
         "onKeyUp='updateLongboardSettingsFromUI()'>" +
         "Прозрачность " +
         "<div class='rangeslidecontainer'>" +
-        "<input type='range' min='0' max='100' value='" + longboardSettings.transparency + "' class='rangeslider' " +
+        "<input type='range' min='0' max='100' value='" + longboardState.transparency + "' class='rangeslider' " +
         "id='longboard-transparency' onchange='updateLongboardSettingsFromUI()'><br />" +
         "</div>" +
         "</div>");
@@ -110,12 +113,12 @@ window.addEventListener('load', function () {
 
 function updateLongboardSettingsFromUI() {
 
-    longboardSettings.capoFret = parseInt(document.querySelector('#longboard-capo-number').value);
-    longboardSettings.currentFill = document.querySelector('#fill-longboard-finger-color').value;
-    longboardSettings.transparency = document.querySelector('#longboard-transparency').value;
+    longboardState.capoFret = parseInt(document.querySelector('#longboard-capo-number').value);
+    longboardState.currentFill = document.querySelector('#fill-longboard-finger-color').value;
+    longboardState.transparency = document.querySelector('#longboard-transparency').value;
 
-    if (isNaN(longboardSettings.capoFret))
-        longboardSettings.capoFret = 0;
+    if (isNaN(longboardState.capoFret))
+        longboardState.capoFret = 0;
 
     saveState();
     redraw();
@@ -148,7 +151,7 @@ function updateLongboardSize() {
 
 function updateHorizontal() {
     var partCount = 0;
-    partCount += (longboardSettings.fretNumber + 1) * longboardSettings.proportions.fretWidth;
+    partCount += (longboardSettings.fretCount + 1) * longboardSettings.proportions.fretWidth;
     partCount += longboardSettings.proportions.nutWidth;
     partCount += longboardSettings.proportions.horizontalPadding * 2;
     longboardSettings.horizontalParts = partCount;
@@ -179,8 +182,8 @@ function drawFingers(ctx, w, h) {
 
     ctx.font = Math.round(0.06 * h) + "px Times New Roman";
 
-    for (let i = 0; i < longboardSettings.stringState.length; i++) {
-        const gutarString = longboardSettings.stringState[i];
+    for (let i = 0; i < longboardState.stringState.length; i++) {
+        const gutarString = longboardState.stringState[i];
 
         //Open or Muted - not our fingering case
         if (gutarString.state != stringStates.pressed)
@@ -235,7 +238,7 @@ function drawLongboardBase(ctx, w, h) {
     //frets
     var fretStep = longboardSettings.proportions.fretWidth;
     var fretOffset = horizontalPadding + nutWidth + fretStep;
-    for (var i = 0; i < longboardSettings.fretNumber; i++) {
+    for (var i = 0; i < longboardSettings.fretCount; i++) {
         ctx.moveTo((i * fretStep + fretOffset) * hp, vp * verticalPadding);
         ctx.lineTo((i * fretStep + fretOffset) * hp, h - vp * verticalPadding);
     }
@@ -244,7 +247,7 @@ function drawLongboardBase(ctx, w, h) {
     //dots
     ctx.fillStyle = longboardSettings.colorScheme.dotColor;
     var dotSize = longboardSettings.proportions.stringPadding / 4 * vp;
-    for (var i = 1; i <= longboardSettings.fretNumber; i++) {
+    for (var i = 1; i <= longboardSettings.fretCount; i++) {
         switch (i % 12) {
             case 0:
                 ctx.beginPath();
@@ -289,7 +292,7 @@ function handleLongboardFretClick(x, y) {
     var Position = getClickPosition(x, y);
     if (Position == null)
         return;
-    var clickedString = longboardSettings.stringState[Position.string];
+    var clickedString = longboardState.stringState[Position.string];
     //Remove finger
 
     if (clickedString.state == stringStates.pressed) {
