@@ -438,7 +438,8 @@ var availableModeFunctions = {
         'mode-labels': createLabelsHandler,
         'mode-fill': setTonic,
         'mode-highlight': setTonic,
-        'mode-keyboard' : function (x, y, canvas,evtype) {}
+        'mode-keyboard' : function (x, y, canvas,evtype) {},
+        'mode-fretboard': function (x, y, canvas, evtype, code) { }
     },
 
     'keyboard-canvas': {
@@ -449,7 +450,8 @@ var availableModeFunctions = {
         'mode-labels': function (x, y, canvas,evtype) {},
         'mode-fill': function (x, y, canvas,evtype) {},
         'mode-highlight': function (x, y, canvas,evtype) {},
-        'mode-keyboard' : function (x, y, canvas,evtype) {}
+        'mode-keyboard' : function (x, y, canvas,evtype) {},
+        'mode-fretboard': function (x, y, canvas, evtype, code) { }
     },
 };
 
