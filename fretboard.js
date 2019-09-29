@@ -180,7 +180,6 @@ function drawFingerPositions(ctx, w, h) {
         ctx.fillText(gutarString.finger, x, y + 0.02 * h);
 
     }
-    //❶ ❷ ❸ ❹ ❺
 }
 
 
