@@ -328,12 +328,16 @@ var chordDefinitions = [
 
 
 function marshalModeAction(x, y, canvas,evtype, code) {
-    availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
+
+    if( canvas.id in availableModeFunctions && 
+        activeModeName in availableModeFunctions[canvas.id])
+        availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
 }
 
 function redraw() {
 
-    modeDependentRenderers[activeCanvasName]();    
+    if(modeDependentRenderers.hasOwnProperty(activeCanvasName))
+        modeDependentRenderers[activeCanvasName]();    
 }
 
 function addModeListeners(source)
@@ -387,7 +391,6 @@ window.addEventListener('load', function ()
 
     modeDependentRenderers['circle_of_fifths']= drawCircleOfFifths;
     modeDependentRenderers['keyboard']= drawKeyboard;
-    modeDependentRenderers['fretboard']=drawFretboard;
 
     redraw();
 });
