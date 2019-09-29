@@ -7,11 +7,22 @@ const longboardCanvasId = 'longboard-canvas';
 
 var longboardSettings = {
     colorScheme:{
-        deckColor:"#E4C69F",
-        deckBorderColor:"#603F18",
+        neckColor:"#E4C69F",
+        neckBorderColor:"#603F18",
         stringColor:"#E7E8E8",
-        fretColor:"#C0B151"
+        fretColor:"#C0B151",
+        dotColor:"#cdb467"
     },
+    proportions:{
+        horizontalPadding:1,
+        verticalPadding:3,
+        nutWidth:1,
+        fretWidth:3,
+        stringPadding:2
+    },
+    verticalParts:0,
+    horizontalParts:0,
+    fretNumber:24,
     currentFill : 'black',
     capoFret : 0,
     transparency: 0,
@@ -127,11 +138,26 @@ function updateLongboardSize() {
     var height = longboard.clientHeight;
 
     /* TODO : adapt to desired ratio */
-
+    updateVertical();
+    updateHorizontal();
     document.querySelector("#" + longboardCanvasId).width = height * longboardSettings.widthToHeightRatio;
+
 }
 
+function updateHorizontal(){
+    var partCount = 0;
+    partCount += (longboardSettings.fretNumber+1) * longboardSettings.proportions.fretWidth;
+    partCount += longboardSettings.proportions.nutWidth;
+    partCount += longboardSettings.proportions.horizontalPadding*2;
+    longboardSettings.horizontalParts = partCount;
+}
 
+function updateVertical(){
+    var partCount = 0;
+    partCount += longboardSettings.proportions.verticalPadding*2;
+    partCount += longboardSettings.proportions.stringPadding*(6+1);
+    longboardSettings.verticalParts = partCount;
+}
 
 function drawLongboard() {
 
@@ -148,28 +174,63 @@ function drawLongboard() {
  * @param {int} h 
  */
 function drawLongboardBase(ctx, w, h) {
+    var hp = w/longboardSettings.horizontalParts;
+    var vp = h/longboardSettings.verticalParts;
+
+    var nutWidth = longboardSettings.proportions.nutWidth;
+    var horizontalPadding = longboardSettings.proportions.horizontalPadding;
+    var verticalPadding = longboardSettings.proportions.verticalPadding;
+
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, w, h);
-
-    ctx.fillStyle = longboardSettings.colorScheme.deckColor;
-    ctx.fillRect(1/75 * w, 0.15 * h, 73/75 * w, 0.7 * h);
     
-    ctx.fillStyle = longboardSettings.colorScheme.deckBorderColor;
-    ctx.fillRect(1/75 * w, 0.15 * h, 2/75 * w, 0.7 * h);
-
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = longboardSettings.colorScheme.deckBorderColor;
-    ctx.strokeRect(1/75 * w, 0.15 * h, 73/75 * w, 0.7 * h);
+    // neck
+    ctx.fillStyle = longboardSettings.colorScheme.neckColor;
+    ctx.fillRect(hp*horizontalPadding, verticalPadding*vp, w-2*hp*horizontalPadding, h - 2*verticalPadding*vp);
+    
+    ctx.fillStyle = longboardSettings.colorScheme.neckBorderColor;
+    ctx.fillRect(hp*horizontalPadding, verticalPadding*vp, nutWidth*hp, h - 2*verticalPadding*vp);
 
     ctx.lineWidth = 3;
-    ctx.strokeStyle = longboardSettings.colorScheme.stringColor;
+    ctx.strokeStyle = longboardSettings.colorScheme.neckBorderColor;
+    ctx.strokeRect(hp*horizontalPadding, verticalPadding*vp, w-2*hp*horizontalPadding, h - 2*verticalPadding*vp);
+
+    
+    ctx.strokeStyle = longboardSettings.colorScheme.fretColor;
     ctx.beginPath();
-    for (var i = 0; i < 6; i++) {
-        ctx.moveTo(1/75*w, 0.25 * h + 0.1 * h * i);
-        ctx.lineTo(73/75*w, 0.25 * h + 0.1 * h * i);
+
+    //frets
+    var fretStep = longboardSettings.proportions.fretWidth;
+    var fretOffset = horizontalPadding + nutWidth + fretStep; 
+    for (var i = 0; i < longboardSettings.fretNumber; i++) {
+        ctx.moveTo((i*fretStep + fretOffset)*hp, vp*verticalPadding);
+        ctx.lineTo((i*fretStep + fretOffset)*hp, h-vp*verticalPadding);
     }
     ctx.stroke();
 
+    //dots
+    ctx.fillStyle = longboardSettings.colorScheme.dotColor;
+    var dotSize = longboardSettings.proportions.stringPadding/4*vp;
+    for (var i = 1; i <= longboardSettings.fretNumber; i++) {
+        switch(i % 12){
+            case 0:
+                    ctx.beginPath();
+                    ctx.arc(((i-1.5)*fretStep + fretOffset)*hp,h*0.5 + verticalPadding*vp,dotSize , 0, Math.PI * 2, false);
+                    ctx.arc(((i-1.5)*fretStep + fretOffset)*hp,h*0.5 - verticalPadding*vp,dotSize , 0, Math.PI * 2, false);
+                    ctx.fill();
+                break;
+            case 3:
+            case 5:
+            case 7:
+            case 9:
+                ctx.beginPath();
+                ctx.arc(((i-1.5)*fretStep + fretOffset)*hp,h*0.5,dotSize , 0, Math.PI * 2, false);
+                ctx.fill();
+                break;
+            default:
+                continue;
+        }
+    }
 }
 
 /**
@@ -178,14 +239,35 @@ function drawLongboardBase(ctx, w, h) {
  * @param {int} h 
  */
 function drawStrings(ctx,w,h){
+    var hp = w/longboardSettings.horizontalParts;
+    var vp = h/longboardSettings.verticalParts;
 
-    fretboardSettings.fretColor
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = longboardSettings.colorScheme.stringColor;
+    ctx.beginPath();
     for (var i = 0; i < 6; i++) {
-        ctx.moveTo(1/75*w, 0.25 * h + 0.1 * h * i);
-        ctx.lineTo(73/75*w, 0.25 * h + 0.1 * h * i);
+        ctx.moveTo(hp, 0.25 * h + 0.1 * h * i);
+        ctx.lineTo(w-hp, 0.25 * h + 0.1 * h * i);
     }
+    ctx.stroke();
 }
-
+function getClickPosition(x,y){
+    var w = longboard.clientWidth;
+    var h = longboard.clientHeight;
+    var hp = w/longboardSettings.horizontalParts;
+    var vp = h/longboardSettings.verticalParts;
+    var hOffset = longboardSettings.proportions.horizontalPadding;
+    var yOffset = longboardSettings.proportions.verticalPadding;
+    if(x > hp*(hOffset + longboardSettings.proportions.nutWidth) && x < w - hp*hOffset){
+        x-=hp*(hOffset + longboardSettings.proportions.nutWidth);
+        y-=vp*yOffset;
+        var fret = Math.ceil(x / (longboardSettings.proportions.fretWidth*hp));
+        var string = Math.round(y / (longboardSettings.proportions.stringPadding*vp));
+        return {fret,string};
+    }  
+    
+    return null;
+}
 function toggleLongboardFretHighlight(x, y, cavnas, evtype, code) {
     
     if (evtype != 'mousedown')
