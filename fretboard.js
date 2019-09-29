@@ -10,6 +10,7 @@ const stringStates = {muted:'muted',open:'open', pressed: 'pressed'};
 var fretboardSettings = {
     guitarTuningChromatic: [4,9,2,7,11,4], //EADGBE
     chordName: "Chord",
+    capoFret: 0,
     stringState:new Array(6).fill(null).map(()=>({state:"open",finger:null,fret:0})),
     widthToHeightRatio: 0.64,
 };
@@ -31,7 +32,10 @@ window.addEventListener('load', function () {
         "<span class='slider'>Показать</span></label>"+
         "<input type='text' id='fretboard-chord-name' placeholder='Название аккорда' "+
         "onchange='updateFretboardSettingsFromUI()' "+
-        "onKeyUp='updateFretboardSettingsFromUI()'"+
+        "onKeyUp='updateFretboardSettingsFromUI()'>"+
+        "<input type='text' id='fretboard-capo-number' placeholder='Номер лада с каподастром' "+
+        "onchange='updateFretboardSettingsFromUI()' "+
+        "onKeyUp='updateFretboardSettingsFromUI()'>"+
         "</div>");
 
     lastchild.insertAdjacentHTML('afterend', "<label class='switch'>" +
@@ -78,6 +82,13 @@ window.addEventListener('load', function () {
 function updateFretboardSettingsFromUI(){
 
     fretboardSettings.chordName = document.querySelector('#fretboard-chord-name').value;
+    fretboardSettings.capoFret = parseInt(document.querySelector('#fretboard-capo-number').value);
+
+    if(fretboardSettings.chordName == null || fretboardSettings.chordName == "")
+        fretboardSettings.chordName = "Chord";
+
+    if(isNaN(fretboardSettings.capoFret))
+        fretboardSettings.capoFret = 0;
 
     redraw();
 }
@@ -212,6 +223,8 @@ function drawNoteNames(ctx, w, h) {
         if(fretboardSettings.stringState[nstring].state == stringStates.pressed)          
             tuning+=fretboardSettings.stringState[nstring].fret;
         
+        tuning+=fretboardSettings.capoFret;
+
         ctx.fillText(getChromaticNoteName(tuning), 3 / 16 * w + 2 / 16 * w * nstring, 0.88 * h);
 
     }
