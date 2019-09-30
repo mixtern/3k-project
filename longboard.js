@@ -28,8 +28,8 @@ var longboardSettings={
         dotColor: "#cdb467"
     },
     proportions: {
-        horizontalPadding: 1,
-        verticalPadding: 3,
+        horizontalPadding: 0,
+        verticalPadding: 0,
         nutWidth: 1,
         fretWidth: 3,
         stringPadding: 2
@@ -37,7 +37,7 @@ var longboardSettings={
     verticalParts: 0,
     horizontalParts: 0,
     fretCount: 24,
-    widthToHeightRatio: 4,
+    widthToHeightRatio: 6,
 };
 
 persistObject('longboard-state', longboardState, onLongboardStateRestored);
@@ -83,7 +83,7 @@ window.addEventListener('load', function () {
     //Insert canvas
 
     document.querySelector("#keyboard").insertAdjacentHTML('afterend', '<div id="longboard" class="canvas-container" style="display:none">' +
-        '<canvas id="' + longboardCanvasId + '" height="250"></canvas></div>');
+        '<canvas id="' + longboardCanvasId + '" height="150"></canvas></div>');
 
     avaliableContainerIds.push('longboard');   //container id actually
     modeDependentRenderers['longboard'] = drawLongboard;
@@ -179,8 +179,7 @@ function drawLongboard() {
  */
 function drawFingers(ctx, w, h) {
     var hp = w / longboardSettings.horizontalParts;
-
-    ctx.font = Math.round(0.06 * h) + "px Arial black";
+    var vp = h / longboardSettings.verticalParts;
 
     for (let i = 0; i < longboardState.stringState.length; i++) {
         const guitarString = longboardState.stringState[i];
@@ -199,14 +198,18 @@ function drawFingers(ctx, w, h) {
      
         var x = (fret * fretStep + fretOffset) * hp;
 
-        var y = 0.25 * h + 0.1 * h * i;
+        var y = longboardSettings.proportions.verticalPadding * vp + longboardSettings.proportions.stringPadding*vp + longboardSettings.proportions.stringPadding*vp* i;
 
+        var dotSize = longboardSettings.proportions.stringPadding / 2 * vp;
+        
         var tAlpha = ctx.globalAlpha;
+
+        ctx.font = Math.round(dotSize) + "px Arial black";
 
         ctx.globalAlpha = guitarString.opacity;
         ctx.fillStyle = guitarString.fill;    
         ctx.beginPath();
-        ctx.arc(x, y, 0.05*h, 0, Math.PI * 2, false);
+        ctx.arc(x, y, dotSize, 0, Math.PI * 2, false);
         ctx.fill();
         ctx.globalAlpha = tAlpha;
         ctx.fillStyle = "white";
@@ -228,8 +231,8 @@ function drawLongboardBase(ctx, w, h) {
     var horizontalPadding = longboardSettings.proportions.horizontalPadding;
     var verticalPadding = longboardSettings.proportions.verticalPadding;
 
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, w, h);
+    
+    ctx.clearRect(0,0,w,h)
 
     // neck
     ctx.fillStyle = longboardSettings.colorScheme.neckColor;
@@ -259,11 +262,12 @@ function drawLongboardBase(ctx, w, h) {
     ctx.fillStyle = longboardSettings.colorScheme.dotColor;
     var dotSize = longboardSettings.proportions.stringPadding / 4 * vp;
     for (var i = 1; i <= longboardSettings.fretCount; i++) {
+        console.log(i);
         switch (i % 12) {
             case 0:
                 ctx.beginPath();
-                ctx.arc(((i - 1.5) * fretStep + fretOffset) * hp, h * 0.5 + verticalPadding * vp, dotSize, 0, Math.PI * 2, false);
-                ctx.arc(((i - 1.5) * fretStep + fretOffset) * hp, h * 0.5 - verticalPadding * vp, dotSize, 0, Math.PI * 2, false);
+                ctx.arc(((i - 1.5) * fretStep + fretOffset) * hp, h * 0.5 + longboardSettings.proportions.stringPadding * vp, dotSize, 0, Math.PI * 2, false);
+                ctx.arc(((i - 1.5) * fretStep + fretOffset) * hp, h * 0.5 - longboardSettings.proportions.stringPadding * vp, dotSize, 0, Math.PI * 2, false);
                 ctx.fill();
                 break;
             case 3:
@@ -289,12 +293,15 @@ function drawStrings(ctx, w, h) {
     var hp = w / longboardSettings.horizontalParts;
     var vp = h / longboardSettings.verticalParts;
 
+    var verticalOffset = vp*(longboardSettings.proportions.verticalPadding+longboardSettings.proportions.stringPadding);
+    var verticalStep = vp*longboardSettings.proportions.stringPadding;
+
     ctx.lineWidth = 3;
     ctx.strokeStyle = longboardSettings.colorScheme.stringColor;
     ctx.beginPath();
     for (var i = 0; i < 6; i++) {
-        ctx.moveTo(hp, 0.25 * h + 0.1 * h * i);
-        ctx.lineTo(w - hp, 0.25 * h + 0.1 * h * i);
+        ctx.moveTo(longboardSettings.proportions.horizontalPadding*hp, verticalOffset + verticalStep * i);
+        ctx.lineTo(w-longboardSettings.proportions.horizontalPadding*hp, verticalOffset + verticalStep * i);
     }
     ctx.stroke();
 }
