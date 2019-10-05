@@ -211,7 +211,23 @@ function drawFingers(ctx, w, h) {
         ctx.fillStyle = guitarString.fill;    
         ctx.beginPath();
         ctx.arc(x, y, dotSize, 0, Math.PI * 2, false);
-        ctx.fill();
+        ctx.fill();       
+        
+        //shadow crescent
+        ctx.globalAlpha = 0.1;
+        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = 'black';    
+        ctx.beginPath(); 
+        ctx.arc(x, y, dotSize-1,Math.PI/2, 1.5*Math.PI, false);
+        ctx.stroke();     
+
+        ctx.globalAlpha = 0.3;
+        ctx.font = Math.round(dotSize) + "px Arial black";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        ctx.fillText(guitarString.finger, x-1, y-1 + 0.02 * h);
+
+        ctx.font = Math.round(dotSize) + "px Arial black";
         ctx.globalAlpha = tAlpha;
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
