@@ -21,15 +21,16 @@ var longboardState = {
 
 var longboardSettings={
     colorScheme: {
-        neckColor: "#E4C69F",
-        neckBorderColor: "#603F18",
-        stringColor: "#E7E8E8",
-        fretColor: "#C0B151",
-        dotColor: "#cdb467"
+        neckColor: "#fffbf0",
+        neckBorderColor: "#e8e3dd",
+        stringColor: "#df9d61",
+        fretColor: "#99948e",
+        dotColor: "#e8e3dd"
     },
     proportions: {
         horizontalPadding: 0,
         verticalPadding: 0,
+        borderFretsVerticalMargin: 10,
         nutWidth: 1,
         fretWidth: 3,
         stringPadding: 2
@@ -236,14 +237,21 @@ function drawLongboardBase(ctx, w, h) {
 
     // neck
     ctx.fillStyle = longboardSettings.colorScheme.neckColor;
-    ctx.fillRect(hp * horizontalPadding, verticalPadding * vp, w - 2 * hp * horizontalPadding, h - 2 * verticalPadding * vp);
+    ctx.fillRect(hp * horizontalPadding, verticalPadding * vp + longboardSettings.proportions.borderFretsVerticalMargin,
+         w - 2 * hp * horizontalPadding, 
+         h - 2 * verticalPadding * vp - 2*longboardSettings.proportions.borderFretsVerticalMargin);
 
     ctx.fillStyle = longboardSettings.colorScheme.neckBorderColor;
-    ctx.fillRect(hp * horizontalPadding, verticalPadding * vp, nutWidth * hp, h - 2 * verticalPadding * vp);
+    ctx.fillRect(hp * horizontalPadding, 
+        verticalPadding * vp +  + longboardSettings.proportions.borderFretsVerticalMargin, 
+        nutWidth * hp, h - 2 * verticalPadding * vp - 2 * longboardSettings.proportions.borderFretsVerticalMargin);
 
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = longboardSettings.colorScheme.neckBorderColor;
-    ctx.strokeRect(hp * horizontalPadding, verticalPadding * vp, w - 2 * hp * horizontalPadding, h - 2 * verticalPadding * vp);
+    ctx.strokeRect(hp * horizontalPadding, 
+        verticalPadding * vp +  longboardSettings.proportions.borderFretsVerticalMargin, 
+        w - 2 * hp * horizontalPadding, 
+        h - 2 * verticalPadding * vp - 2* longboardSettings.proportions.borderFretsVerticalMargin);
 
 
     ctx.strokeStyle = longboardSettings.colorScheme.fretColor;
@@ -253,16 +261,15 @@ function drawLongboardBase(ctx, w, h) {
     var fretStep = longboardSettings.proportions.fretWidth;
     var fretOffset = horizontalPadding + nutWidth + fretStep;
     for (var i = 0; i < longboardSettings.fretCount; i++) {
-        ctx.moveTo((i * fretStep + fretOffset) * hp, vp * verticalPadding);
-        ctx.lineTo((i * fretStep + fretOffset) * hp, h - vp * verticalPadding);
+        ctx.moveTo((i * fretStep + fretOffset) * hp, vp * verticalPadding +  longboardSettings.proportions.borderFretsVerticalMargin);
+        ctx.lineTo((i * fretStep + fretOffset) * hp, h - vp * verticalPadding -  longboardSettings.proportions.borderFretsVerticalMargin);
     }
     ctx.stroke();
 
     //dots
     ctx.fillStyle = longboardSettings.colorScheme.dotColor;
     var dotSize = longboardSettings.proportions.stringPadding / 4 * vp;
-    for (var i = 1; i <= longboardSettings.fretCount; i++) {
-        console.log(i);
+    for (var i = 1; i <= longboardSettings.fretCount; i++) {        
         switch (i % 12) {
             case 0:
                 ctx.beginPath();
@@ -296,7 +303,7 @@ function drawStrings(ctx, w, h) {
     var verticalOffset = vp*(longboardSettings.proportions.verticalPadding+longboardSettings.proportions.stringPadding);
     var verticalStep = vp*longboardSettings.proportions.stringPadding;
 
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 1;
     ctx.strokeStyle = longboardSettings.colorScheme.stringColor;
     ctx.beginPath();
     for (var i = 0; i < 6; i++) {
