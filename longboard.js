@@ -72,7 +72,7 @@ window.addEventListener('load', function () {
         "<input type='checkbox' id='longboard-show' onchange='setLongboardVisibility(this)'>" +
         "<span class='slider'>Показать</span></label>" +
         "Подсветка " +
-        "<input type='color' id='fill-longboard-finger-color' value='#000000' onchange='updateLongboardSettingsFromUI()'><br /><br />" +
+        "<input type='color' id='fill-longboard-finger-color' value='" + longboardState.currentFill + "' onchange='updateLongboardSettingsFromUI()'><br /><br />" +
         "Номер лада с каподастром " +
         "<input type='text' id='longboard-capo-number' " +
         "value = '" + longboardState.capoFret + "' " +
@@ -103,7 +103,6 @@ window.addEventListener('load', function () {
         };
 
     longboard = addModeListeners(document.getElementById(longboardCanvasId));
-
 
     document.getElementById(longboardModeToken).addEventListener('change',
         function (event) {
