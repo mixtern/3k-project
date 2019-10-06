@@ -7,17 +7,24 @@ const longboardCanvasId = 'longboard-canvas';
 
 var longboardState = {
     currentFill: 'black',
+    currentFingerSize : 14,
     capoFret: 0,
     transparency: 0,
-    stringState: new Array(6).fill(null).map(() => ({
-        state: "open",
-        finger: null,
-        opacity: 1,
-        fret: 0,
-        fill: 'black'
-    })),
-    
+    fingers: [],
+    saveFinger: function(stringTop, stringBot, fret, label, opacity, fill){
+        this.fingers.push({
+            string1 : stringTop,
+            string2 : stringBot,
+            fret: fret,
+            label: label,
+            opacity :opacity,
+            fill : fill,
+            size: this.currentFingerSize
+        });
+    }
 };
+
+
 
 var longboardSettings={
     colorScheme: {
@@ -48,6 +55,7 @@ function onLongboardStateRestored() {
     //TODO: use if needed
 }
 
+
 /**
  * Create longboard-related HTML controls
  */
@@ -70,8 +78,7 @@ window.addEventListener('load', function () {
         "value = '" + longboardState.capoFret + "' " +
         "onchange='updateLongboardSettingsFromUI()' " +
         "onKeyUp='updateLongboardSettingsFromUI()'>" +
-        "Прозрачность " +
-        "<div class='rangeslidecontainer'>" +
+        "<div class='rangeslidecontainer' style='visibility:hidden'>" +
         "<input type='range' min='0' max='100' value='" + longboardState.transparency + "' class='rangeslider' " +
         "id='longboard-transparency' onchange='updateLongboardSettingsFromUI()'><br />" +
         "</div>" +
@@ -92,7 +99,7 @@ window.addEventListener('load', function () {
     //Register handlers for freboard mode
     availableModeFunctions[longboardCanvasId] =
         {
-            'mode-longboard': function (x, y, canvas, evtype, code) { toggleLongboardFretHighlight(x, y, canvas, evtype, code) },
+            'mode-longboard': longboardEventHandler,
         };
 
     longboard = addModeListeners(document.getElementById(longboardCanvasId));
@@ -170,7 +177,94 @@ function drawLongboard() {
     drawLongboardBase(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawStrings(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawFingers(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
-    /*TODO: draw something else */
+
+    //State - related render
+    if(fingerInputMode.render != null)
+        fingerInputMode.render(longboard.clientWidth,longboard.clientHeight,longboard.ctx);
+    
+}
+
+
+function getFingerCenter(fret,string,w,h){
+
+    var hp = w / longboardSettings.horizontalParts;
+    var vp = h / longboardSettings.verticalParts;
+
+    return {x:(fret * longboardSettings.proportions.fretWidth + longboardSettings.proportions.horizontalPadding + 
+        longboardSettings.proportions.nutWidth + longboardSettings.proportions.fretWidth / 2) * hp,
+
+        y:longboardSettings.proportions.verticalPadding * vp + longboardSettings.proportions.stringPadding*vp + longboardSettings.proportions.stringPadding*vp* string};
+}
+
+
+function renderFingerOutlines(ctx,x1,x2,y1,y2,size){
+    ctx.beginPath();
+    //upper cap
+    ctx.arc(x1, y1, size, Math.PI, 0, false);
+    //lower cap
+    ctx.arc(x2, y2, size, 0, Math.PI, false);
+    //connect
+    ctx.closePath();
+}
+
+function renderFingerOrBarr(finger, w,h, ctx, isGhost){
+    
+    var a = ctx.globalAlpha;
+
+    var p1 = getFingerCenter(finger.fret - 1 - longboardState.capoFret,finger.string1,w,h);
+    var p2 = getFingerCenter(finger.fret - 1 - longboardState.capoFret,finger.string2,w,h);
+    
+    if(isGhost)
+    {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = finger.fill;    
+        renderFingerOutlines(ctx,p1.x,p2.x,p1.y,p2.y,finger.size);
+        ctx.fill();           
+
+        ctx.globalAlpha = 0.7;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'black';    
+        ctx.setLineDash([5, 3]); 
+        renderFingerOutlines(ctx,p1.x,p2.x,p1.y,p2.y,finger.size);
+        ctx.stroke();           
+        ctx.setLineDash([1, 0]);
+    }
+    else
+    {
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = 'black';
+        renderFingerOutlines(ctx,p1.x,p2.x,p1.y,p2.y,finger.size);
+        ctx.stroke();  
+
+        ctx.fillStyle = finger.fill;
+        ctx.globalAlpha = 1;
+        ctx.setLineDash([1, 0]);
+
+        renderFingerOutlines(ctx,p1.x,p2.x,p1.y,p2.y,finger.size);
+        ctx.fill();                           
+    }
+
+    //label  
+
+    var label = finger.label.length == 0 && isGhost ? "_" : finger.label;
+
+    ctx.globalAlpha = 0.3;
+    ctx.font = Math.round(finger.size) + "px Arial black";
+    
+    var textHeight = ctx.measureText("M").width;
+    
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText(label, p1.x-1, p1.y-1 + textHeight/2);
+
+    ctx.font = Math.round(finger.size) + "px Arial black";
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+    ctx.fillText(label, p1.x, p1.y + textHeight/2);
+    
+    ctx.globalAlpha =a;
 }
 
 /**
@@ -179,59 +273,18 @@ function drawLongboard() {
  * @param {int} h 
  */
 function drawFingers(ctx, w, h) {
-    var hp = w / longboardSettings.horizontalParts;
-    var vp = h / longboardSettings.verticalParts;
 
-    for (let i = 0; i < longboardState.stringState.length; i++) {
-        const guitarString = longboardState.stringState[i];
+    for (let finger of longboardState.fingers) {
 
-        //Open or Muted - not our fingering case
-        if (guitarString.state != stringStates.pressed)
-            continue;
-
-        var fretStep = longboardSettings.proportions.fretWidth;
-        var fretOffset = longboardSettings.proportions.horizontalPadding + longboardSettings.proportions.nutWidth + longboardSettings.proportions.fretWidth / 2;
-        
-        var fret = guitarString.fret - longboardState.capoFret -1;
+        var fret = finger.fret - longboardState.capoFret -1;
 
         if(fret < 0)
             continue;
-     
-        var x = (fret * fretStep + fretOffset) * hp;
 
-        var y = longboardSettings.proportions.verticalPadding * vp + longboardSettings.proportions.stringPadding*vp + longboardSettings.proportions.stringPadding*vp* i;
-
-        var dotSize = longboardSettings.proportions.stringPadding / 2 * vp;
-        
-        var tAlpha = ctx.globalAlpha;
-
-        ctx.font = Math.round(dotSize) + "px Arial black";
-
-        ctx.globalAlpha = guitarString.opacity;
-        ctx.fillStyle = guitarString.fill;    
-        ctx.beginPath();
-        ctx.arc(x, y, dotSize, 0, Math.PI * 2, false);
-        ctx.fill();       
-        
-        //shadow crescent
-        ctx.globalAlpha = 0.1;
-        ctx.lineWidth = 0.5;
-        ctx.strokeStyle = 'black';    
-        ctx.beginPath(); 
-        ctx.arc(x, y, dotSize-1,Math.PI/2, 1.5*Math.PI, false);
-        ctx.stroke();     
-
-        ctx.globalAlpha = 0.3;
-        ctx.font = Math.round(dotSize) + "px Arial black";
-        ctx.fillStyle = "black";
-        ctx.textAlign = "center";
-        ctx.fillText(guitarString.finger, x-1, y-1 + 0.02 * h);
-
-        ctx.font = Math.round(dotSize) + "px Arial black";
-        ctx.globalAlpha = tAlpha;
-        ctx.fillStyle = "white";
-        ctx.textAlign = "center";
-        ctx.fillText(guitarString.finger, x, y + 0.02 * h);
+        renderFingerOrBarr(
+            finger,
+            w,h,ctx,
+            false);
     }
 }
 
@@ -247,8 +300,7 @@ function drawLongboardBase(ctx, w, h) {
     var nutWidth = longboardSettings.proportions.nutWidth;
     var horizontalPadding = longboardSettings.proportions.horizontalPadding;
     var verticalPadding = longboardSettings.proportions.verticalPadding;
-
-    
+        
     ctx.clearRect(0,0,w,h)
 
     // neck
@@ -329,32 +381,6 @@ function drawStrings(ctx, w, h) {
     ctx.stroke();
 }
 
-function handleLongboardFretClick(x, y) {
-    var clickPosition = getClickPosition(x, y);
-    if (clickPosition == null)
-        return;
-    var clickedString = longboardState.stringState[clickPosition.string];
-    //Remove finger
-
-    if (clickedString.state == stringStates.pressed) {
-        clickedString.state = stringStates.open;
-        clickedString.fret = 0;
-        return;
-    }
-
-    //Add finger
-
-    var finger = prompt("Подпись");
-
-    clickedString.state = stringStates.pressed;
-    clickedString.finger = finger;
-    clickedString.fret = clickPosition.fret +  longboardState.capoFret;
-    clickedString.fill = longboardState.currentFill;
-    clickedString.opacity = 1 - (longboardState.transparency/100);
-    //TODO add finger color to longboard
-
-    saveState();
-}
 
 function getClickPosition(x, y) {
     var w = longboard.clientWidth;
@@ -368,22 +394,213 @@ function getClickPosition(x, y) {
         y -= vp * yOffset;
         var fret = Math.ceil(x / (longboardSettings.proportions.fretWidth * hp));
         var string = Math.round(y / (longboardSettings.proportions.stringPadding * vp))-1;
+
+        if(string < 0 || string > 5)
+            return null;
+
         return { fret, string };
     }
     return null;
 }
-function toggleLongboardFretHighlight(x, y, cavnas, evtype, code) {
 
-    if (evtype != 'mousedown')
-        return;
 
-    switch (code.button) {
-        case 0:
-            handleLongboardFretClick(x, y);
+var _escKeycode = 27;
+var _delKeycode = 46;
+var _bckspKeycode = 8;
+
+/**
+ * State machine
+ */
+const FingerInputModes = {
+    Ghost: {
+        state : {pos: null},
+        render : function(w,h,ctx){
+       
+            if(this.state.pos == null)
+                return;
+
+            var center = getFingerCenter(this.state.pos.fret-1,this.state.pos.string,w,h);
+                        
+            var a = ctx.globalAlpha;
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 3])
+            ctx.strokeStyle = 'black';    
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, longboardState.currentFingerSize, 0, Math.PI * 2, false);
+            ctx.stroke();
+            ctx.setLineDash([1, 0])
+            ctx.globalAlpha =a;
+            
+        },
+        mousemove: function (x, y, evt) {
+
+            this.state.pos = getClickPosition(x, y);
+            redraw();
+        },
+        mousedown: function (x, y, evt) {
+
+            evt.preventDefault();
+
+            if(this.state.pos == null)
+                return;
+
+            var filtered  = longboardState.fingers.filter(finger=>
+                finger.fret != this.state.pos.fret ||           
+                finger.string1 > this.state.pos.string ||
+                finger.string2 < this.state.pos.string
+            );
+
+            if(filtered.length != longboardState.fingers.length)
+            {
+                longboardState.fingers = filtered;
+                redraw();
+                saveState();
+                return;
+            }
+
+            fingerInputMode = FingerInputModes.FingerPlacement;
+            fingerInputMode.state.template.placementStart = this.state.pos;
+            fingerInputMode.state.template.placementEnd = this.state.pos;
+
+            redraw();
+        },
+        mouseup: null
+    },
+    FingerPlacement: {
+        state:{
+            template:{
+                placementStart: null,
+                placementEnd: null,
+                label : "",
+            },            
+        },
+        mousemove: function(x,y,evt) {
+            
+            var pos = getClickPosition(x, y);            
+
+            this.state.template.placementEnd = pos == null ? this.state.template.placementStart : pos;
+
+            redraw();
+        },
+        keydown: function (code,evt) {
+
+            evt.preventDefault();
+
+            switch(code){
+                case _escKeycode:
+                    fingerInputMode = FingerInputModes.Ghost;
+                    break;
+                case _bckspKeycode:
+                    this.state.template.label = "";                    
+                    break; 
+                case 187://add
+                    longboardState.currentFingerSize = Math.min(longboardState.currentFingerSize +1 , 20);
+                    break;
+                case 189://subtract
+                    longboardState.currentFingerSize = Math.max(longboardState.currentFingerSize -1 , 12);
+                    break;
+                default:                    
+                    this.state.template.label = String.fromCharCode(code);
+                    break;
+            }
+
+            redraw();
+
+        },
+        keyup:  function (code) {
+            if (code == _delKeycode)
+            {
+                this.state.template.label = "";
+                redraw();
+                return;
+            }
+        },
+        mousedown: function(x,y,evt) {
+            this.saveCurrentTemplate();
+            fingerInputMode = FingerInputModes.Ghost;
+            evt.preventDefault();
+            redraw();
+        },
+        saveCurrentTemplate : function(){
+            longboardState.fingers.push(this.getFingerDefinitionFromTemplate());
+            saveState();
+        },
+        getFingerDefinitionFromTemplate: function(){
+            var top = this.state.template.placementStart.string < this.state.template.placementEnd.string ? 
+            this.state.template.placementStart.string : 
+            this.state.template.placementEnd.string;
+
+            var bot = this.state.template.placementStart.string < this.state.template.placementEnd.string ? 
+            this.state.template.placementEnd.string : 
+            this.state.template.placementStart.string;
+
+            return{
+                string1: top,
+                string2: bot,
+                label: this.state.template.label,
+                fret: this.state.template.placementStart.fret,
+                opacity :longboardState.opacity,
+                fill : longboardState.currentFill,
+                size:  longboardState.currentFingerSize
+            };
+        },
+        render : function(w,h,ctx){
+
+            renderFingerOrBarr(this.getFingerDefinitionFromTemplate(),w,h,ctx,true);
+        
+        },
+        mouseup: null
+    },
+};
+
+var fingerInputMode = FingerInputModes.Ghost;
+
+function longboardEventHandler(px, py, canvas, evtype, keyCode,evt) {
+
+    switch (evtype) {
+        case 'mousedown':
+
+            if (fingerInputMode.mousedown!= null)
+                fingerInputMode.mousedown(px, py, evt);
+            
             break;
-        default:
-            code.preventDefault();
-    }
+            
+        case 'mousemove':
 
-    redraw();
+            if (fingerInputMode.mousemove != null)
+                fingerInputMode.mousemove(px, py, evt);
+
+            break;
+        case 'mouseup':
+        case 'mouseleave':
+            
+            if (fingerInputMode.mouseup != null)
+                fingerInputMode.mouseup(px, py, canvas, keyCode);
+
+            break;
+        case 'keydown':
+
+            if (fingerInputMode.keydown != null)
+                fingerInputMode.keydown(keyCode,evt);
+
+            break;
+
+        case 'keyup':
+
+            if (fingerInputMode.keyup != null)
+                fingerInputMode.keyup(keyCode);
+
+            break;
+
+        case 'paste':
+
+            if (fingerInputMode.paste != null)
+                fingerInputMode.paste(evt);
+
+            break;
+
+        default:
+            break;  
+    }    
 }

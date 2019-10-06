@@ -327,11 +327,11 @@ var chordDefinitions = [
 ];
 
 
-function marshalModeAction(x, y, canvas,evtype, code) {
+function marshalModeAction(x, y, canvas,evtype, code,evt) {
 
     if( canvas.id in availableModeFunctions && 
         activeModeName in availableModeFunctions[canvas.id])
-        availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code);
+        availableModeFunctions[canvas.id][activeModeName](x,y,canvas,evtype, code,evt);
 }
 
 function redraw() {
@@ -346,38 +346,39 @@ function addModeListeners(source)
    
     source.addEventListener('mousedown',
     function (event) {
-        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousedown', event);
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousedown', 0,event);
+        event.preventDefault();
         return false;
     },false);
 
     source.addEventListener('mousemove',
     function (event) {
-        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousemove');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mousemove', 0,event);
         return false;
     },false);
 
     source.addEventListener('mouseup',
      function (event) {
-        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseup');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseup',0, event);
          return false;
      },false);
 
     source.addEventListener('mouseleave',
      function (event) {
-        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseleave');
+        marshalModeAction(event.pageX - source.offsetLeft, event.pageY - source.offsetTop, source,'mouseleave', 0,event);
          return false;
      },false);
 
 
     window.addEventListener('keydown',
      function (event) {
-        marshalModeAction(0, 0, source,'keydown',event.keyCode);
+        marshalModeAction(0, 0, source,'keydown',event.keyCode,event);
          return false;
      },false);
 
     window.addEventListener('keyup',
  function (event) {
-    marshalModeAction(0, 0, source,'keyup',event.keyCode);
+    marshalModeAction(0, 0, source,'keyup',event.keyCode,event);
      return false;
  },false);   
 
