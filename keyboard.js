@@ -5,15 +5,32 @@ Keyboard drawing
 
 window.addEventListener('load', function () 
 {
+
+    //Install handlers for keyboard mode
+    availableModeFunctions['keyboard-canvas'] =
+    {
+        'mode-basetone': function (x, y, canvas, evtype) { },
+        'mode-alttone': function (x, y, canvas, evtype) { },
+        'mode-chords': toggleKeyHighlight,
+        'mode-arrows': createArrowsHandler,
+        'mode-labels': createLabelsHandler,
+        'mode-fill': function (x, y, canvas, evtype) { },
+        'mode-highlight': function (x, y, canvas, evtype) { },
+        'mode-fretboard': function (x, y, canvas, evtype, code) { },
+        'mode-keyboard': toggleKeyLabel
+    };
+
     document.getElementById('mode-keyboard').addEventListener('change',
     function (event) {
-
+        
         if (document.getElementById('mode-keyboard').checked) {
 
             document.getElementById('keyboard-show').checked = true;
 
             setKeyboardVisibility(document.getElementById('keyboard-show'));
         }
+
+
         return false;
     },false);
 
@@ -128,20 +145,6 @@ function setKeyboardVisibility(source) {
         redraw();
         return;
     }
-
-    //Install handlers for keyboard mode
-    availableModeFunctions['keyboard-canvas'] =
-    {
-        'mode-basetone': function (x, y, canvas, evtype) { },
-        'mode-alttone': function (x, y, canvas, evtype) { },
-        'mode-chords': toggleKeyHighlight,
-        'mode-arrows': createArrowsHandler,
-        'mode-labels': createLabelsHandler,
-        'mode-fill': function (x, y, canvas, evtype) { },
-        'mode-highlight': function (x, y, canvas, evtype) { },
-        'mode-fretboard': function (x, y, canvas, evtype, code) { },
-        'mode-keyboard': toggleKeyLabel
-    };
 
     removeAllLabels();
 
