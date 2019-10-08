@@ -52,7 +52,8 @@ persistObject('longboard-state', longboardState, onLongboardStateRestored);
 
 //Called after deserialization
 function onLongboardStateRestored() {
-    //TODO: use if needed
+    document.querySelector("#longboard-capo-number").value = longboardState.capoFret;
+    document.querySelector("#fill-longboard-finger-color").value = longboardState.currentFill;
 }
 
 

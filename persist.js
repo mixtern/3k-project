@@ -66,8 +66,15 @@ function persistObject(key, target, onRestored)
     persistedObjectsCallbacks[key] = onRestored;
 }
 
-function saveState()
-{
+function createStateSnapshot(){
+
+    var snapshot = {
+        objects:JSON.stringify(persistedObjects),
+        elements:{},
+        arrows:Array.from(activeArrows),
+        labels:Array.from(activeLabels),
+    };
+
     for (const selector in watchedElements) {
 
         var attributeOrProperty = watchedElements[selector];
@@ -82,18 +89,18 @@ function saveState()
         if(attributeOrProperty.startsWith(propertyPrefix))
             value = target[attributeOrProperty.substring(propertyPrefix.length)];
 
-        localStorage.setItem(storagePrefix+selector,JSON.stringify(value));        
+        snapshot.elements[storagePrefix+selector] =JSON.stringify(value);
     }
 
-    localStorage.setItem('states',JSON.stringify(persistedObjects));
+    return snapshot;
 }
 
-function restoreState()
-{
+function restoreStateSnapshot(snapshot){
+
     for (const selector in watchedElements) {
 
         var attributeOrProperty = watchedElements[selector];
-        var value = localStorage.getItem(storagePrefix+selector);
+        var value = snapshot.elements[storagePrefix+selector];
 
         if(undefined == value)
             continue;
@@ -111,7 +118,7 @@ function restoreState()
             target.setAttribute(attributeOrProperty,value);
     }
 
-    var oldStates = localStorage.getItem('states');
+    var oldStates = snapshot.objects;
 
     if(undefined == oldStates)
         return;
@@ -126,10 +133,36 @@ function restoreState()
         Object.assign(persistedObjects[key],restored[key]);        
     }
 
+    if(Array.isArray(snapshot.arrows))
+        activeArrows = Array.from(snapshot.arrows);
+    if(Array.isArray(snapshot.labels))
+        activeLabels = Array.from(snapshot.labels);
+
     window.setTimeout(function() {
         for (var key in persistedObjects) {
             persistedObjectsCallbacks[key]();
         }
         return false;
     },200); //hack
+}
+
+function saveState()
+{
+    localStorage.setItem('lastState',JSON.stringify(createStateSnapshot()));
+}
+
+function restoreState()
+{
+    var value = localStorage.getItem('lastState');
+
+    if(undefined == value)
+        return;
+
+    var snapshot = JSON.parse(value);
+
+    //Dont restore arrow state on regular persist event
+    snapshot.arrows= [];
+    snapshot.labels=[];
+
+    restoreStateSnapshot(snapshot);
 }

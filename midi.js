@@ -31,11 +31,11 @@ var midiSettings ={
 
 window.addEventListener('load', function () 
 {
-    var container = document.querySelector("#main-container");
+    var container = document.querySelector("#main-container > header");
     
     var element = document.createElement('template');
 
-    element.innerHTML = "<div style='position: fixed; bottom: 0; left: 0;width:34px; padding:5px; background:#eee'><label class='switch'><input type='checkbox' id='midi-switch' onchange='hookMidi(this)'>"+
+    element.innerHTML = "<div style='position: fixed; top: 0; left: 0;width:34px; padding:5px; background:#eee'><label class='switch'><input type='checkbox' id='midi-switch' onchange='hookMidi(this)'>"+
     "<img class='slider' src='img/midi.svg' style='width:40px;height:40px;padding:2px;'></span></label>"+
     "</div>";
 

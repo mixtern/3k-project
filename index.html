@@ -18,13 +18,14 @@
     <script src="fretboard.js"></script>
     <script src="longboard.js"></script>
     <script src="label-overall.js"></script>
-
+    <script src="presets.js"></script>
 </head>
 
 <body>
 
     <div id="main-container">
 
+    <header>
     <!-- circle of fifths -->
     <div id="circle_of_fifths" class="canvas-container">
         <canvas id="circleOfFifths"></canvas>
@@ -301,7 +302,16 @@
     
             <button class="btn" onclick="downloadImage()">↓Download↓</button>
         </div>
-    
+        </header>
+
+        <div id='presets-container'>
+            <label class="header-label">ПРЕСЕТЫ</label>
+
+            <div id='presets-list'>
+            </div>
+
+            <button class="preset-button button-add" onclick="createNewPreset()">Сохранить 💾</button>
+        </div>
 
     </div>
 
