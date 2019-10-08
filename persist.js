@@ -74,6 +74,7 @@ function createStateSnapshot(){
         arrows:Array.from(activeArrows),
         labels:Array.from(activeLabels),
         keys: JSON.stringify(keys),
+        circle: JSON.stringify(chordDefinitions),
     };
 
     for (const selector in watchedElements) {
@@ -140,6 +141,15 @@ function restoreStateSnapshot(snapshot){
         activeLabels = Array.from(snapshot.labels);
     if(typeof snapshot.keys!= 'undefined' && snapshot.keys!=null)
         keys = JSON.parse(snapshot.keys);
+    if(typeof snapshot.circle!= 'undefined' && snapshot.circle!=null)
+    {
+        var restored = JSON.parse(snapshot.circle);
+
+        for (let i = 0; i < chordDefinitions.length; i++) {
+            Object.assign(chordDefinitions[i],restored[i]);
+        }
+        
+    }
 
     window.setTimeout(function() {
         for (var key in persistedObjects) {
