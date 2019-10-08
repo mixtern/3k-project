@@ -177,6 +177,7 @@ function restoreState()
     snapshot.arrows= [];
     snapshot.labels=[];
     snapshot.keys = null;
+    snapshot.circle = null;
 
     restoreStateSnapshot(snapshot);
 }
