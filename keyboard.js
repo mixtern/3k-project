@@ -64,7 +64,6 @@ function createKeyItem(keyname, keypos) {
         name: keyname,
         position: keypos,
         isPressed : false,
-        draw : drawKey,
         highlight : ChordHighlightType.None,
         hitX1 : 0,
         hitY1 : 0,
@@ -420,7 +419,7 @@ function keyboardDrawBase(ctx, w, h) {
         if(!key.isWhite)
             continue;
 
-        key.draw(key,ctx,xpos,0);
+        drawKey(key,ctx,xpos,0);
 
         xpos += key.width * h * keyboardParameters.keyWidthToHeightRatio;
     }
@@ -437,7 +436,7 @@ function keyboardDrawBase(ctx, w, h) {
             continue;
         }
 
-        key.draw(key,ctx,xpos,0);
+        drawKey(key,ctx,xpos,0);
     }
 
 }

@@ -73,6 +73,7 @@ function createStateSnapshot(){
         elements:{},
         arrows:Array.from(activeArrows),
         labels:Array.from(activeLabels),
+        keys: JSON.stringify(keys),
     };
 
     for (const selector in watchedElements) {
@@ -137,6 +138,8 @@ function restoreStateSnapshot(snapshot){
         activeArrows = Array.from(snapshot.arrows);
     if(Array.isArray(snapshot.labels))
         activeLabels = Array.from(snapshot.labels);
+    if(typeof snapshot.keys!= 'undefined' && snapshot.keys!=null)
+        keys = JSON.parse(snapshot.keys);
 
     window.setTimeout(function() {
         for (var key in persistedObjects) {
@@ -163,6 +166,7 @@ function restoreState()
     //Dont restore arrow state on regular persist event
     snapshot.arrows= [];
     snapshot.labels=[];
+    snapshot.keys = null;
 
     restoreStateSnapshot(snapshot);
 }
