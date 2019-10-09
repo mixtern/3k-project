@@ -55,6 +55,7 @@ header{
 #presets-list{
  display: flex;
  width:100%;
+ flex-wrap: wrap;
 }
 
 .preset-wrapper{

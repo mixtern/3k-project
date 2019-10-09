@@ -46,6 +46,8 @@ var longboardSettings={
     horizontalParts: 0,
     fretCount: 24,
     widthToHeightRatio: 6,
+    lastWidth : 0,
+    lastHeight: 0,
 };
 
 persistObject('longboard-state', longboardState, onLongboardStateRestored);
@@ -101,6 +103,7 @@ window.addEventListener('load', function () {
     availableModeFunctions[longboardCanvasId] =
         {
             'mode-longboard': longboardEventHandler,
+            'mode-arrows': createArrowsHandler,
         };
 
     longboard = addModeListeners(document.getElementById(longboardCanvasId));
@@ -128,6 +131,8 @@ function updateLongboardSettingsFromUI() {
     if (isNaN(longboardState.capoFret))
         longboardState.capoFret = 0;
 
+    
+
     saveState();
     redraw();
 }
@@ -153,7 +158,11 @@ function updateLongboardSize() {
     /* TODO : adapt to desired ratio */
     updateVertical();
     updateHorizontal();
+
     document.querySelector("#" + longboardCanvasId).width = height * longboardSettings.widthToHeightRatio;
+
+    longboardSettings.lastWidth = longboard.clientWidth;
+    longboardSettings.lastHeight = longboard.clientHeight;
 
 }
 
@@ -174,6 +183,9 @@ function updateVertical() {
 
 function drawLongboard() {
 
+    if(longboardSettings.verticalParts == 0)
+        updateLongboardSize();
+
     drawLongboardBase(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawStrings(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawFingers(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
@@ -182,6 +194,8 @@ function drawLongboard() {
     if(fingerInputMode.render != null)
         fingerInputMode.render(longboard.clientWidth,longboard.clientHeight,longboard.ctx);
     
+    //arrows, labels, etc
+    invokeModeIndependentRendereres(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
 }
 
 
@@ -382,7 +396,7 @@ function drawStrings(ctx, w, h) {
 }
 
 
-function getClickPosition(x, y) {
+function mousePositionToFretPosition(x, y) {
     var w = longboard.clientWidth;
     var h = longboard.clientHeight;
     var hp = w / longboardSettings.horizontalParts;
@@ -435,7 +449,7 @@ const FingerInputModes = {
         },
         mousemove: function (x, y, evt) {
 
-            this.state.pos = getClickPosition(x, y);
+            this.state.pos = mousePositionToFretPosition(x, y);
             redraw();
         },
         mousedown: function (x, y, evt) {
@@ -477,7 +491,7 @@ const FingerInputModes = {
         },
         mousemove: function(x,y,evt) {
             
-            var pos = getClickPosition(x, y);            
+            var pos = mousePositionToFretPosition(x, y);            
 
             this.state.template.placementEnd = pos == null ? this.state.template.placementStart : pos;
 

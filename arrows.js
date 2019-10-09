@@ -63,6 +63,20 @@ function buildSnapPoints(){
             });
 
             break;
+        case 'longboard':
+            arrowSettings.snapPoints=[];
+
+            for (let fret = 0; fret < longboardSettings.fretCount; fret++) {
+                for (let string = 0; string < 6; string++) {
+                    
+                    const finger = getFingerCenter(fret,string,longboardSettings.lastWidth,longboardSettings.lastHeight);
+
+                    arrowSettings.snapPoints.push({ x:finger.x, y:finger.y });                    
+                }
+                
+            }
+
+            break;
         default:
             arrowSettings.snapPoints = chordDefinitions.map((ch) => {
                 return {
