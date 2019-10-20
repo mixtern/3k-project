@@ -587,9 +587,16 @@ const FingerInputModes = {
 
             redraw();
         },
-        keydown: function (code,evt) {
-
+        keypress: function(code,evt){
             evt.preventDefault();
+            this.state.template.label+=String.fromCharCode(code);
+
+            if(this.state.template.label.length > 2)
+                this.state.template.label = this.state.template.label.substring(this.state.template.label.length-2);
+
+            redraw();
+        },
+        keydown: function (code,evt) {
 
             switch(code){
                 case _escKeycode:
@@ -605,10 +612,10 @@ const FingerInputModes = {
                     longboardState.currentFingerSize = Math.max(longboardState.currentFingerSize -1 , 12);
                     break;
                 default:                    
-                    this.state.template.label = String.fromCharCode(code);
-                    break;
+                    return;
             }
 
+            evt.preventDefault();
             redraw();
 
         },
@@ -622,6 +629,7 @@ const FingerInputModes = {
         },
         mousedown: function(x,y,evt) {
             this.saveCurrentTemplate();
+            this.state.template.label = "";
             fingerInputMode = FingerInputModes.Ghost;
             evt.preventDefault();
             redraw();
@@ -687,6 +695,13 @@ function longboardEventHandler(px, py, canvas, evtype, keyCode,evt) {
 
             if (fingerInputMode.keydown != null)
                 fingerInputMode.keydown(keyCode,evt);
+
+            break;
+
+        case 'keypress':
+
+            if (fingerInputMode.keypress != null)
+                fingerInputMode.keypress(keyCode,evt);
 
             break;
 

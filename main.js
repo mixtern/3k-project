@@ -376,6 +376,12 @@ function addModeListeners(source)
          return false;
      },false);
 
+     window.addEventListener('keypress',
+     function (event) {
+        marshalModeAction(0, 0, source,'keypress',event.keyCode,event);
+         return false;
+     },false);
+
     window.addEventListener('keyup',
  function (event) {
     marshalModeAction(0, 0, source,'keyup',event.keyCode,event);
