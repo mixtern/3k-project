@@ -5,23 +5,25 @@ longboard drawing
 const longboardModeToken = 'mode-longboard';
 const longboardCanvasId = 'longboard-canvas';
 
+const knownStringStates ={
+    none : 0,
+    open : 1,
+    closed : 2,
+};
+
 var longboardState = {
     currentFill: 'black',
     currentFingerSize : 14,
     capoFret: 0,
     transparency: 0,
     fingers: [],
-    saveFinger: function(stringTop, stringBot, fret, label, opacity, fill){
-        this.fingers.push({
-            string1 : stringTop,
-            string2 : stringBot,
-            fret: fret,
-            label: label,
-            opacity :opacity,
-            fill : fill,
-            size: this.currentFingerSize
-        });
-    }
+    stringStates:[
+        knownStringStates.open,
+        knownStringStates.open,
+        knownStringStates.open,
+        knownStringStates.open,
+        knownStringStates.open,
+        knownStringStates.open]
 };
 
 
@@ -32,7 +34,8 @@ var longboardSettings={
         neckBorderColor: "#e8e3dd",
         stringColor: "#df9d61",
         fretColor: "#99948e",
-        dotColor: "#e8e3dd"
+        dotColor: "#e8e3dd",
+        stringStateColor : "#505050"
     },
     proportions: {
         horizontalPadding: 0,
@@ -122,6 +125,15 @@ window.addEventListener('load', function () {
 
 });
 
+/**
+ * 
+ * @param {int} stringNumber 
+ * @param {knownStringState} state 
+ */
+function setStringState(stringNumber,state){
+    longboardState.stringStates[stringNumber] = state;
+}
+
 function updateLongboardSettingsFromUI() {
 
     longboardState.capoFret = parseInt(document.querySelector('#longboard-capo-number').value);
@@ -189,6 +201,8 @@ function drawLongboard() {
     drawLongboardBase(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawStrings(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
     drawFingers(longboard.ctx, longboard.clientWidth, longboard.clientHeight);
+
+    drawStringStates(longboard.ctx,longboard.clientWidth,longboard.clientHeight);
 
     //State - related render
     if(fingerInputMode.render != null)
@@ -299,6 +313,40 @@ function drawFingers(ctx, w, h) {
             finger,
             w,h,ctx,
             false);
+    }
+}
+
+/**
+ * 
+ * @param {CanvasRenderingContext2D} ctx 
+ * @param {int} w 
+ * @param {int} h 
+ */
+function drawStringStates(ctx,w,h){
+
+    ctx.fillStyle = longboardSettings.colorScheme.stringStateColor;
+    ctx.font = "22px Arial";
+    ctx.textAlign = 'left';
+
+    for (let nstring = 0; nstring < longboardState.stringStates.length; nstring++) {
+        const sstate = longboardState.stringStates[nstring];
+        
+        if(sstate == knownStringStates.none)
+            continue;
+
+        if(longboardState.fingers.find(s=>s.string1 <= nstring && s.string2 >= nstring) != undefined)
+            continue;
+
+        var pos = getFingerCenter(-0.8,nstring,w,h);
+
+        pos.y+=ctx.measureText("M").width/2 - 3;
+
+        if(sstate == knownStringStates.open)
+            ctx.fillText("o", pos.x,pos.y);
+
+        if(sstate == knownStringStates.closed)
+            ctx.fillText("x", pos.x,pos.y);
+        
     }
 }
 
@@ -417,6 +465,40 @@ function mousePositionToFretPosition(x, y) {
     return null;
 }
 
+function mousePositionToNutPosition(x,y){
+
+    var w = longboard.clientWidth;
+    var h = longboard.clientHeight;
+
+    var hOffset = longboardSettings.proportions.horizontalPadding;
+
+
+    var hp = w / longboardSettings.horizontalParts;
+
+    if(x >= hp * (hOffset + longboardSettings.proportions.nutWidth))
+        return null;
+
+    var vp = h / longboardSettings.verticalParts;
+
+    return Math.round(y / (longboardSettings.proportions.stringPadding * vp))-1;
+}
+
+function maybeHandleNutClick(x,y){
+    var nstring = mousePositionToNutPosition(x,y);
+
+    if(null == nstring)
+        return;
+
+    if(nstring < 0 || nstring > 5)
+        return;
+
+    longboardState.stringStates[nstring] = longboardState.stringStates[nstring] == knownStringStates.open ? 
+    knownStringStates.closed:
+    knownStringStates.open;
+
+    redraw();
+}
+
 
 var _escKeycode = 27;
 var _delKeycode = 46;
@@ -427,7 +509,8 @@ var _bckspKeycode = 8;
  */
 const FingerInputModes = {
     Ghost: {
-        state : {pos: null},
+        state : {pos: null, mousepos:{x:0,y:0}},
+
         render : function(w,h,ctx){
        
             if(this.state.pos == null)
@@ -450,6 +533,10 @@ const FingerInputModes = {
         mousemove: function (x, y, evt) {
 
             this.state.pos = mousePositionToFretPosition(x, y);
+            
+            this.state.mousepos.x = x;
+            this.state.mousepos.y = y;
+
             redraw();
         },
         mousedown: function (x, y, evt) {
@@ -457,7 +544,10 @@ const FingerInputModes = {
             evt.preventDefault();
 
             if(this.state.pos == null)
+            {
+                maybeHandleNutClick(x,y);
                 return;
+            }
 
             var filtered  = longboardState.fingers.filter(finger=>
                 finger.fret != this.state.pos.fret ||           
