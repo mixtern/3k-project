@@ -64,7 +64,7 @@ window.addEventListener('load', function () {
             'mode-fill': function (x, y, canvas, evtype) { /*nothing*/ },
             'mode-highlight': function (x, y, canvas, evtype) { /*nothing*/ },
             'mode-keyboard': function (x, y, canvas, evtype) {  /*nothing*/ },
-            'mode-fretboard': function (x, y, canvas, evtype, code) { toggleFretHighlight(x, y, canvas, evtype, code) },
+            'mode-fretboard': function (x, y, canvas, evtype, code, evt) { toggleFretHighlight(x, y, canvas, evtype, code,evt) },
         };
 
     fretboard = addModeListeners(document.getElementById(fretboardCanvasId));
@@ -172,12 +172,13 @@ function drawFingerPositions(ctx, w, h) {
 
         var x = 3 / 16 * w + 2 / 16 * w * i;
         var y = 0.26 * h + 0.1 * h * gutarString.fret;
+        const textWidth = ctx.measureText(gutarString.finger).width;
         ctx.fillStyle = gutarString.fill;
         ctx.beginPath();
         ctx.arc(x, y, 0.035 * h, 0, Math.PI * 2, false);
         ctx.fill();
         ctx.fillStyle = "white";
-        ctx.fillText(gutarString.finger, x, y + 0.02 * h);
+        ctx.fillText(gutarString.finger, x - textWidth/2, y + 0.02 * h);
 
     }
 }
@@ -291,18 +292,18 @@ function switchStringState(stringNumber) {
 }
 
 
-function toggleFretHighlight(x, y, cavnas, evtype, code) {
+function toggleFretHighlight(x, y, cavnas, evtype, code,evt) {
     
     if (evtype != 'mousedown') 
         return;
     
-    switch (code.button) {
+    switch (evt.button) {
         case 0:
             handleFretClick(x, y);
             handleMuteClick(x, y);
             break;
         default:
-            code.preventDefault();
+            evt.preventDefault();
     }
     redraw();
 }
