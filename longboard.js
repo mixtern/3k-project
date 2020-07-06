@@ -9,6 +9,7 @@ const knownStringStates ={
     none : 0,
     open : 1,
     closed : 2,
+    customLabel : 3
 };
 
 var longboardState = {
@@ -23,7 +24,8 @@ var longboardState = {
         knownStringStates.open,
         knownStringStates.open,
         knownStringStates.open,
-        knownStringStates.open]
+        knownStringStates.open],
+    stringLabels:['','','','','','']
 };
 
 
@@ -35,7 +37,8 @@ var longboardSettings={
         stringColor: "#df9d61",
         fretColor: "#99948e",
         dotColor: "#e8e3dd",
-        stringStateColor : "#505050"
+        stringStateColor : "#505050",
+        stringStateColorDarker : "#303030",
     },
     proportions: {
         horizontalPadding: 0,
@@ -331,7 +334,7 @@ function drawStringStates(ctx,w,h){
     for (let nstring = 0; nstring < longboardState.stringStates.length; nstring++) {
         const sstate = longboardState.stringStates[nstring];
         
-        if(sstate == knownStringStates.none)
+        if(sstate == knownStringStates.none || sstate == knownStringStates.customLabel)
             continue;
 
         if(longboardState.fingers.find(s=>s.string1 <= nstring && s.string2 >= nstring) != undefined)
@@ -346,6 +349,29 @@ function drawStringStates(ctx,w,h){
 
         if(sstate == knownStringStates.closed)
             ctx.fillText("x", pos.x,pos.y);
+        if(sstate === knownStringStates.customLabel){
+            ctx.fillText(longboardState.stringLabels[nstring], pos.x,pos.y);
+        }
+    }
+
+    ctx.fillStyle = longboardSettings.colorScheme.stringStateColorDarker;
+    ctx.font = "17px Arial";
+    ctx.textAlign = 'left';
+    
+    for (let nstring = 0; nstring < longboardState.stringStates.length; nstring++) {
+        const sstate = longboardState.stringStates[nstring];
+        
+        if(sstate !== knownStringStates.customLabel)
+            continue;
+
+        if(longboardState.fingers.find(s=>s.string1 <= nstring && s.string2 >= nstring) != undefined)
+            continue;
+
+        var pos = getFingerCenter(-0.8,nstring,w,h);
+
+        pos.y+=ctx.measureText("M").width/2 - 3;
+
+        ctx.fillText(longboardState.stringLabels[nstring], pos.x,pos.y);
         
     }
 }
@@ -472,7 +498,6 @@ function mousePositionToNutPosition(x,y){
 
     var hOffset = longboardSettings.proportions.horizontalPadding;
 
-
     var hp = w / longboardSettings.horizontalParts;
 
     if(x >= hp * (hOffset + longboardSettings.proportions.nutWidth))
@@ -483,7 +508,7 @@ function mousePositionToNutPosition(x,y){
     return Math.round(y / (longboardSettings.proportions.stringPadding * vp))-1;
 }
 
-function maybeHandleNutClick(x,y){
+function maybeHandleNutClick(x,y, isCtrl){
     var nstring = mousePositionToNutPosition(x,y);
 
     if(null == nstring)
@@ -492,9 +517,24 @@ function maybeHandleNutClick(x,y){
     if(nstring < 0 || nstring > 5)
         return;
 
-    longboardState.stringStates[nstring] = longboardState.stringStates[nstring] == knownStringStates.open ? 
-    knownStringStates.closed:
-    knownStringStates.open;
+    let state = knownStringStates.open;
+
+    if(isCtrl){
+        state = longboardState.stringStates[nstring] == knownStringStates.customLabel ? 
+        knownStringStates.open:
+        knownStringStates.customLabel;
+
+        if(state === knownStringStates.customLabel){
+            longboardState.stringLabels[nstring] = prompt("Подпись");
+        }
+    }
+    else{
+        state = longboardState.stringStates[nstring] == knownStringStates.open ? 
+        knownStringStates.closed:
+        knownStringStates.open;
+    }
+
+    longboardState.stringStates[nstring] = state;
 
     redraw();
 }
@@ -545,7 +585,7 @@ const FingerInputModes = {
 
             if(this.state.pos == null)
             {
-                maybeHandleNutClick(x,y);
+                maybeHandleNutClick(x,y, evt.ctrlKey);
                 return;
             }
 
