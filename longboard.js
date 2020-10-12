@@ -44,7 +44,7 @@ var longboardSettings={
         horizontalPadding: 0,
         verticalPadding: 0,
         borderFretsVerticalMargin: 10,
-        nutWidth: 1,
+        nutWidth: 2,
         fretWidth: 3,
         stringPadding: 2
     },
@@ -334,7 +334,7 @@ function drawStringStates(ctx,w,h){
     for (let nstring = 0; nstring < longboardState.stringStates.length; nstring++) {
         const sstate = longboardState.stringStates[nstring];
         
-        if(sstate == knownStringStates.none || sstate == knownStringStates.customLabel)
+        if(sstate === knownStringStates.none || sstate === knownStringStates.customLabel)
             continue;
 
         if(longboardState.fingers.find(s=>s.string1 <= nstring && s.string2 >= nstring) != undefined)
@@ -343,19 +343,16 @@ function drawStringStates(ctx,w,h){
         var pos = getFingerCenter(-0.8,nstring,w,h);
 
         pos.y+=ctx.measureText("M").width/2 - 3;
+        pos.x-=ctx.measureText("o").width/2 + 2;
 
         if(sstate == knownStringStates.open)
             ctx.fillText("o", pos.x,pos.y);
-
         if(sstate == knownStringStates.closed)
             ctx.fillText("x", pos.x,pos.y);
-        if(sstate === knownStringStates.customLabel){
-            ctx.fillText(longboardState.stringLabels[nstring], pos.x,pos.y);
-        }
     }
 
     ctx.fillStyle = longboardSettings.colorScheme.stringStateColorDarker;
-    ctx.font = "17px Arial";
+    ctx.font = "15px Arial";
     ctx.textAlign = 'left';
     
     for (let nstring = 0; nstring < longboardState.stringStates.length; nstring++) {
@@ -369,9 +366,26 @@ function drawStringStates(ctx,w,h){
 
         var pos = getFingerCenter(-0.8,nstring,w,h);
 
-        pos.y+=ctx.measureText("M").width/2 - 3;
+        ctx.fillStyle = longboardSettings.colorScheme.stringColor;
+        ctx.globalAlpha = 1;
+        ctx.setLineDash([1, 0]);
 
-        ctx.fillText(longboardState.stringLabels[nstring], pos.x,pos.y);
+        const padRad = ctx.measureText("M").width*0.7;
+
+        ctx.beginPath();
+        //upper cap
+        ctx.arc(pos.x-10, pos.y, padRad, Math.PI/2, -Math.PI/2, false);
+        //lower cap
+        ctx.arc(pos.x, pos.y, padRad, -Math.PI/2, Math.PI/2, false);
+        //connect
+        ctx.closePath();
+
+        ctx.fill();
+        
+        ctx.fillStyle = 'white';
+        ctx.fillText(longboardState.stringLabels[nstring], 
+            pos.x-ctx.measureText(longboardState.stringLabels[nstring]).width/2 - 2,
+            pos.y+ctx.measureText("M").width/2-2);
         
     }
 }
@@ -512,31 +526,28 @@ function maybeHandleNutClick(x,y, isCtrl){
     var nstring = mousePositionToNutPosition(x,y);
 
     if(null == nstring)
-        return;
+        return null;
 
     if(nstring < 0 || nstring > 5)
-        return;
-
-    let state = knownStringStates.open;
+        return null;
 
     if(isCtrl){
-        state = longboardState.stringStates[nstring] == knownStringStates.customLabel ? 
-        knownStringStates.open:
-        knownStringStates.customLabel;
-
-        if(state === knownStringStates.customLabel){
-            longboardState.stringLabels[nstring] = prompt("Подпись");
-        }
-    }
-    else{
-        state = longboardState.stringStates[nstring] == knownStringStates.open ? 
-        knownStringStates.closed:
-        knownStringStates.open;
+        longboardState.stringStates[nstring] = knownStringStates.open;
+        redraw();
+        return null;
     }
 
-    longboardState.stringStates[nstring] = state;
+    if(longboardState.stringStates[nstring] === knownStringStates.closed){
+        longboardState.stringStates[nstring] = knownStringStates.customLabel;
+        longboardState.stringLabels[nstring] = "_";
+        return nstring;
+    }
+
+    longboardState.stringStates[nstring] = knownStringStates.closed;
 
     redraw();
+
+    return null;
 }
 
 
@@ -585,7 +596,19 @@ const FingerInputModes = {
 
             if(this.state.pos == null)
             {
-                maybeHandleNutClick(x,y, evt.ctrlKey);
+                let nstring = maybeHandleNutClick(x,y,evt.ctrlKey);
+                if(nstring!==null){
+                    fingerInputMode = FingerInputModes.NutLabelPlacement;
+                    fingerInputMode.state={
+                        template:
+                        {
+                            string: nstring,
+                            label : ""
+                        }};
+
+                    redraw();
+                }
+
                 return;
             }
 
@@ -611,6 +634,97 @@ const FingerInputModes = {
         },
         mouseup: null
     },
+    //
+    NutLabelPlacement:{
+        state:{
+            template:{
+                string : 0,
+                label :"_"
+            },            
+        },
+        keypress: function(code,evt){
+            evt.preventDefault();
+
+            this.state.template.label+=String.fromCharCode(code);
+
+            if(this.state.template.label.length > 2)
+                this.state.template.label = this.state.template.label.substring(this.state.template.label.length-2);
+
+            longboardState.stringLabels[this.state.template.string] = this.state.template.label;
+
+            evt.preventDefault();
+            redraw();
+        },
+        render : function(w,h,ctx){
+
+            longboardState.stringStates[this.state.template.string] = knownStringStates.customLabel;
+            longboardState.stringLabels[this.state.template.string] = this.state.template.label;
+        
+            var pos = getFingerCenter(-0.8,this.state.template.string,w,h);
+
+            ctx.strokeStyle = 'black';
+            ctx.globalAlpha = 0.5;
+            ctx.setLineDash([3, 1]);
+    
+            const padRad = ctx.measureText("M").width*0.7+2;
+    
+            ctx.beginPath();
+            //left cap
+            ctx.arc(pos.x-10, pos.y, padRad, Math.PI/2, -Math.PI/2, false);
+            //right cap
+            ctx.arc(pos.x, pos.y, padRad, -Math.PI/2, Math.PI/2, false);
+            //connect
+            ctx.closePath();
+    
+            ctx.stroke();
+            ctx.setLineDash([1, 0]);
+        },
+        updateStringLabel:function(){
+            longboardState.stringLabels[this.state.template.string] = this.state.template.label;
+        },
+        mousemove: (x, y, evt) => { redraw(); },
+        mouseup: null,
+        mousedown: function (x, y, evt) {
+            evt.preventDefault();
+
+            if (this.state.template.label.length < 1)
+                longboardState.stringStates[this.state.template.string] = knownStringStates.open;
+
+            longboardState.stringLabels[this.state.template.string] = longboardState.stringLabels[this.state.template.string].trim();
+            fingerInputMode = FingerInputModes.Ghost;
+            redraw();
+            saveState();
+        },
+        keydown: function (code,evt) {
+
+            switch(code){
+                case _escKeycode:
+                    longboardState.stringStates[this.state.template.string] = knownStringStates.open;
+                    fingerInputMode = FingerInputModes.Ghost;
+                    break;
+                case _bckspKeycode:
+                    this.state.template.label = "";                    
+                    break; 
+                default:                    
+                    return;
+            }
+
+            evt.preventDefault();
+            this.updateStringLabel();
+            redraw();
+
+        },
+        keyup:  function (code) {
+            if (code == _delKeycode)
+            {
+                this.state.template.label = "";
+                this.updateStringLabel();
+                redraw();
+                return;
+            }
+        },
+       },
+    //
     FingerPlacement: {
         state:{
             template:{
