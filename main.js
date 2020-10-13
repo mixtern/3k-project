@@ -386,7 +386,13 @@ function addModeListeners(source)
  function (event) {
     marshalModeAction(0, 0, source,'keyup',event.keyCode,event);
      return false;
- },false);   
+ },false); 
+ 
+ window.addEventListener('paste',
+ function (event) {
+    marshalModeAction(0, 0, source,'paste',0,event);
+     return false;
+ },false); 
 
  return source;
 }

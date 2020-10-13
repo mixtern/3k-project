@@ -682,6 +682,12 @@ const FingerInputModes = {
         updateStringLabel:function(){
             longboardState.stringLabels[this.state.template.string] = this.state.template.label;
         },
+        paste: function(evt){
+            evt.preventDefault();
+            this.state.template.label = evt.clipboardData.getData('text/plain').substring(0,2);
+            this.updateStringLabel();
+            redraw();
+        },
         mousemove: (x, y, evt) => { redraw(); },
         mouseup: null,
         mousedown: function (x, y, evt) {
@@ -748,6 +754,11 @@ const FingerInputModes = {
             if(this.state.template.label.length > 2)
                 this.state.template.label = this.state.template.label.substring(this.state.template.label.length-2);
 
+            redraw();
+        },
+        paste: function(evt){
+            evt.preventDefault();
+            this.state.template.label = evt.clipboardData.getData('text/plain').substring(0,2);
             redraw();
         },
         keydown: function (code,evt) {
