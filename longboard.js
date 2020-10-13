@@ -72,8 +72,6 @@ function onLongboardStateRestored() {
 window.addEventListener('load', function () {
     var lastchild = document.querySelector("#mode-keyboard-controls");
 
-    var element = document.createElement('template');
-
     //Insert switch
 
     lastchild.insertAdjacentHTML('afterend', "<div class='mode-dependent' id='" + longboardModeToken + "-controls'>" +
@@ -91,6 +89,12 @@ window.addEventListener('load', function () {
         "<input type='range' min='0' max='100' value='" + longboardState.transparency + "' class='rangeslider' " +
         "id='longboard-transparency' onchange='updateLongboardSettingsFromUI()'><br />" +
         "</div>" +
+        //Resolution
+        "Высота в пикселях " +
+        "<input type='text' id='longboard-height' " +
+        "value = '" + longboardSettings.lastHeight + "' " +
+        "onblur='updateLongboardSettingsFromUI()' " +
+        "onKeyUp='updateLongboardSettingsFromUI()'>" +
         "</div>");
 
     lastchild.insertAdjacentHTML('afterend', "<label class='switch'>" +
@@ -146,7 +150,8 @@ function updateLongboardSettingsFromUI() {
     if (isNaN(longboardState.capoFret))
         longboardState.capoFret = 0;
 
-    
+    document.querySelector("#" + longboardCanvasId).height = document.getElementById('longboard-height').value;
+    updateLongboardSize();
 
     saveState();
     redraw();
@@ -174,10 +179,15 @@ function updateLongboardSize() {
     updateVertical();
     updateHorizontal();
 
-    document.querySelector("#" + longboardCanvasId).width = height * longboardSettings.widthToHeightRatio;
+    document.querySelector("#" + longboardCanvasId).width = Math.min(
+        height * longboardSettings.widthToHeightRatio,
+        window.innerWidth-150
+        );
 
     longboardSettings.lastWidth = longboard.clientWidth;
     longboardSettings.lastHeight = longboard.clientHeight;
+
+    document.getElementById('longboard-height').value = longboardSettings.lastHeight;
 
 }
 
