@@ -1,19 +1,19 @@
-window.addEventListener('load', function () 
-{
+window.addEventListener('load', function () {
     //add arrow renderer to mode-independent callback list
     modeIndependentRenderers.push(drawArrows);
 });
 
 
-function createArrow(arrowColor,arrowThickness,arrowOpacity,xstart,ystart) {
+function createArrow(arrowColor, arrowThickness, arrowOpacity, headlessMode, xstart, ystart) {
     return {
         header: '', //still WIP
         color: arrowColor,
         thickness: arrowThickness,
-        opacity:arrowOpacity,
-        stroke : false,
-        points:[
-            {x: xstart,y:ystart},
+        opacity: arrowOpacity,
+        headless: headlessMode,
+        stroke: false,
+        points: [
+            { x: xstart, y: ystart },
         ]
     }
 }
@@ -25,55 +25,55 @@ var arrowSettings = {
     arrowThickness: 3,
     arrowSimplification: 500,
     arrowSnap: false,
-    snapPoints : [],
+    snapPoints: [],
 
     drawingArrow: null,
-    alternateDrawingMode : false
+    alternateDrawingMode: false
 };
 
 /**
  * Builds arrow snappoints depending on active mode (chords in circle of 5ths or keys)
  */
-function buildSnapPoints(){
+function buildSnapPoints() {
 
-    switch(activeCanvasName){
+    switch (activeCanvasName) {
         case 'keyboard':
-            arrowSettings.snapPoints=[];
+            arrowSettings.snapPoints = [];
 
             keys.forEach(key => {
 
-                var keymidx = key.hitX1*0.5 + key.hitX2*0.5;
+                var keymidx = key.hitX1 * 0.5 + key.hitX2 * 0.5;
                 var nVerticalSnapsPerKey = 5;
-                
+
                 // Create 5 evenly spaced snap points per each key
 
                 for (let nstep = 0; nstep < nVerticalSnapsPerKey; nstep++) {
 
-                    var t =  nstep / nVerticalSnapsPerKey;
+                    var t = nstep / nVerticalSnapsPerKey;
 
                     // On white keys, snap only to the lower 40% of key
 
-                    if(key.isWhite)
-                        t = t*0.4  + 0.6;                     
+                    if (key.isWhite)
+                        t = t * 0.4 + 0.6;
 
-                    arrowSettings.snapPoints.push({x:keymidx,y:key.hitY1 * (1-t) + key.hitY2*(t) });
+                    arrowSettings.snapPoints.push({ x: keymidx, y: key.hitY1 * (1 - t) + key.hitY2 * (t) });
                 }
-               
-                
+
+
             });
 
             break;
         case 'longboard':
-            arrowSettings.snapPoints=[];
+            arrowSettings.snapPoints = [];
 
             for (let fret = 0; fret < longboardSettings.fretCount; fret++) {
                 for (let string = 0; string < 6; string++) {
-                    
-                    const finger = getFingerCenter(fret,string,longboardSettings.lastWidth,longboardSettings.lastHeight);
 
-                    arrowSettings.snapPoints.push({ x:finger.x, y:finger.y });                    
+                    const finger = getFingerCenter(fret, string, longboardSettings.lastWidth, longboardSettings.lastHeight);
+
+                    arrowSettings.snapPoints.push({ x: finger.x, y: finger.y });
                 }
-                
+
             }
 
             break;
@@ -81,7 +81,8 @@ function buildSnapPoints(){
             arrowSettings.snapPoints = chordDefinitions.map((ch) => {
                 return {
                     x: ch.actualPx,
-                    y: ch.actualPy};
+                    y: ch.actualPy
+                };
             });
             break;
     }
@@ -95,28 +96,26 @@ function buildSnapPoints(){
  * @returns {} 
  */
 function drawArrows(ctx, width, height) {
-        
+
     //Draw saved arrow as curve
 
     for (let arrow of activeArrows) {
-        
-        if(arrow.stroke)
-        {
+
+        if (arrow.stroke) {
             ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = arrow.thickness*2;
+            ctx.lineWidth = arrow.thickness * 2;
             ctx.globalAlpha = 0.9;
 
-            drawCurve(ctx, arrow.points, 0.5);
+            drawCurve(ctx, arrow.points, 0.5, arrow.headless);
         }
 
         ctx.strokeStyle = arrow.color;
         ctx.lineWidth = arrow.thickness;
         ctx.globalAlpha = arrow.opacity;
 
-        var curve = drawCurve(ctx, arrow.points, 0.5);
+        var curve = drawCurve(ctx, arrow.points, 0.5, arrow.headless);
 
-        if(arrow.header && arrow.header.length > 0)
-        {
+        if (arrow.header && arrow.header.length > 0) {
             ctx.fillStyle = arrow.color;
 
             var prevAngle = null;
@@ -132,11 +131,11 @@ function drawArrows(ctx, width, height) {
 
             var totlen = getCurveLength(curve, 0, curve.length - 1);
 
-            while (getCurveLength(curve, 0, startPoint)+textDim/2 < totlen / 2)
+            while (getCurveLength(curve, 0, startPoint) + textDim / 2 < totlen / 2)
                 startPoint++;
 
             //Check whenter text is RTL and flip it
-            
+
             var endPoint = startPoint;
             var nRtl = 0;
             var nLtr = 0;
@@ -154,18 +153,18 @@ function drawArrows(ctx, width, height) {
             //TODO: more specific LTR check
             if (nRtl > nLtr)
                 header = header.split("").reverse().join("");
-            
+
             while (symbolNum < header.length) {
 
                 var nextPoint = startPoint;
 
-                var step = symbolNum==0? 0 : ctx.measureText(header[symbolNum-1]).width;
+                var step = symbolNum == 0 ? 0 : ctx.measureText(header[symbolNum - 1]).width;
 
-                while (nextPoint < curve.length - 1 && getCurveLength(curve,startPoint,nextPoint) < step) {
+                while (nextPoint < curve.length - 1 && getCurveLength(curve, startPoint, nextPoint) < step) {
                     ++nextPoint;
                 }
 
-                if (startPoint == nextPoint && startPoint < curve.length-1)
+                if (startPoint == nextPoint && startPoint < curve.length - 1)
                     nextPoint++;
 
                 var angle = Math.atan2(curve[startPoint].y - curve[nextPoint].y, curve[startPoint].x - curve[nextPoint].x);
@@ -203,10 +202,9 @@ function drawArrows(ctx, width, height) {
 
         if (arrowSettings.alternateDrawingMode) {
             ctx.globalAlpha = 0.2;
-            ctx.fillStyle = arrowSettings.drawingArrow.color;            
+            ctx.fillStyle = arrowSettings.drawingArrow.color;
 
-            for (let pt of arrowSettings.drawingArrow.points)
-            {
+            for (let pt of arrowSettings.drawingArrow.points) {
                 ctx.beginPath();
                 ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
                 ctx.fill();
@@ -246,20 +244,20 @@ function removeAllArrows() {
  * @param {string} evtype event type : 'mousedown'/'mousemove'/'mouseup'
  * @returns {} 
  */
-function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
+function createArrowsHandler(px, py, cavnas, evtype, keyCode) {
     switch (evtype) {
         case 'mousedown':
 
-            if (arrowSettings.alternateDrawingMode){
+            if (arrowSettings.alternateDrawingMode) {
                 if (arrowSettings.drawingArrow == null)
-                    startArrow(px,py);
-                else{
+                    startArrow(px, py);
+                else {
                     arrowSettings.drawingArrow.points.push({ x: px, y: py });
                     redraw();
                 }
             }
             else {
-                startArrow(px,py);
+                startArrow(px, py);
             }
 
             break;
@@ -291,8 +289,8 @@ function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
         case 'keydown':
 
             //Ctrl
-            if (keyCode == 17) 
-                arrowSettings.alternateDrawingMode = true;            
+            if (keyCode == 17)
+                arrowSettings.alternateDrawingMode = true;
 
             break;
 
@@ -300,7 +298,7 @@ function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
 
             //Ctrl
             if (keyCode == 17 && arrowSettings.alternateDrawingMode) {
-                if(arrowSettings.drawingArrow != null)
+                if (arrowSettings.drawingArrow != null)
                     finishArrow(true);
 
                 arrowSettings.alternateDrawingMode = false;
@@ -312,22 +310,25 @@ function createArrowsHandler(px, py, cavnas, evtype,keyCode) {
     }
 }
 
-function startArrow(px,py)
-{
+function startArrow(px, py) {
     arrowSettings.arrowColor = document.querySelector("#arrow-color").value;
     arrowSettings.arrowThickness = document.querySelector("#arrow-thickness").value;
     arrowSettings.arrowOpacity = 1.0 - document.querySelector("#arrow-transparency").value / 100.0;
     arrowSettings.arrowSimplification = document.querySelector("#arrow-simplification").value;
+    arrowSettings.headlessMode = document.querySelector("#arrow-headless").checked;
     arrowSettings.arrowSnap = document.querySelector("#arrow-snap").checked;
 
-    arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor, arrowSettings.arrowThickness, arrowSettings.arrowOpacity, px, py);   
+    arrowSettings.drawingArrow = createArrow(arrowSettings.arrowColor,
+        arrowSettings.arrowThickness,
+        arrowSettings.arrowOpacity,
+        arrowSettings.headlessMode,
+        px, py);
 
     redraw();
 }
 
-function finishArrow(minimalistic)
-{
-    if(activeCanvasName == 'keyboard')
+function finishArrow(minimalistic) {
+    if (activeCanvasName == 'keyboard')
         arrowSettings.drawingArrow.stroke = true;
 
     activeArrows.push(cleanupArrow(arrowSettings.drawingArrow, minimalistic));
@@ -348,19 +349,20 @@ function cleanupArrow(arrow, minimalistic) {
     if (arrowSettings.arrowSnap && !minimalistic) {
 
         var start = arrow.points[0];
-        var end = arrow.points[arrow.points.length-1];
+        var end = arrow.points[arrow.points.length - 1];
 
         var snappoints = arrowSettings.snapPoints.map((snap) => {
             return {
                 x: snap.x,
                 y: snap.y,
-                ds:(snap.x - start.x) * (snap.x - start.x) +
+                ds: (snap.x - start.x) * (snap.x - start.x) +
                     (snap.y - start.y) * (snap.y - start.y),
                 de: (snap.x - end.x) * (snap.x - end.x) +
-                    (snap.y - end.y) * (snap.y - end.y)};
+                    (snap.y - end.y) * (snap.y - end.y)
+            };
         });
 
-        var startsnap = snappoints.sort(function(d1, d2) {
+        var startsnap = snappoints.sort(function (d1, d2) {
             return d1.ds - d2.ds;
         })[0];
 
@@ -371,9 +373,9 @@ function cleanupArrow(arrow, minimalistic) {
         //Step off center to give chord name some space
 
         var gracedistance = 20;
-        var filterdistance = gracedistance*1.5;
+        var filterdistance = gracedistance * 1.5;
 
-        arrow.points = arrow.points.filter(function(pt) {
+        arrow.points = arrow.points.filter(function (pt) {
             return getSqDist(pt, startsnap) > filterdistance * filterdistance &&
                 getSqDist(pt, endsnap) > filterdistance * filterdistance;
         });
@@ -404,7 +406,7 @@ function cleanupArrow(arrow, minimalistic) {
         endsnap.y -= ne.y * gracedistance;
 
         //Replace start-end
-        
+
         arrow.points[0] = { x: startsnap.x, y: startsnap.y };
         arrow.points[arrow.points.length - 1] = { x: endsnap.x, y: endsnap.y };
     }
@@ -449,7 +451,7 @@ function getSqSegDist(p, p1, p2) {
     return dx * dx + dy * dy;
 }
 
-function getSqDist(p1,p2) {
+function getSqDist(p1, p2) {
     return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
 }
 
@@ -464,8 +466,8 @@ function getCurveLength(curve, i1, i2) {
         i1 = i2;
         i2 = t;
     }
-    
-    for (var i = i1; i < i2-1; ++i)
+
+    for (var i = i1; i < i2 - 1; ++i)
         dist += Math.sqrt(getSqDist(curve[i], curve[i + 1]));
 
     return dist;
@@ -527,8 +529,8 @@ function getCurvePoints(pts, tension) {
     // Duplicate first & last points
     ptsCopy.unshift(pts[0]);
     ptsCopy.push(pts[pts.length - 1]);
-    
-    for (i = 1; i < (ptsCopy.length - 2) ; i ++) {
+
+    for (i = 1; i < (ptsCopy.length - 2); i++) {
         for (t = 0; t <= numOfSegments; t++) {
 
             // calc tension vectors
@@ -536,7 +538,7 @@ function getCurvePoints(pts, tension) {
             t2x = (ptsCopy[i + 2].x - ptsCopy[i].x) * tension;
 
             t1y = (ptsCopy[i + 1].y - ptsCopy[i - 1].y) * tension;
-            t2y = (ptsCopy[i + 2].y- ptsCopy[i].y) * tension;
+            t2y = (ptsCopy[i + 2].y - ptsCopy[i].y) * tension;
 
             // calc step
             st = t / numOfSegments;
@@ -552,7 +554,7 @@ function getCurvePoints(pts, tension) {
             y = c1 * ptsCopy[i].y + c2 * ptsCopy[i + 1].y + c3 * t1y + c4 * t2y;
 
             //store points in array
-            result.push({x:x,y:y});
+            result.push({ x: x, y: y });
         }
     }
 
@@ -560,7 +562,7 @@ function getCurvePoints(pts, tension) {
 }
 
 
-function drawCurve(ctx, ptsa, tension) {
+function drawCurve(ctx, ptsa, tension, headless) {
 
     var points = getCurvePoints(ptsa, tension);
     ctx.beginPath();
@@ -570,24 +572,27 @@ function drawCurve(ctx, ptsa, tension) {
     //Draw curve body
     drawLines(ctx, points);
 
-    //Draw arrow cap
-    var headlen = 15;   // length of head in pixels
-    var weldlen = 0; //aux offset to make arrow fin to end nicely
+    if (!headless) {
 
-    var last = points[points.length - 1];
-    var prev = points[points.length - 2];
-    var angle = Math.atan2(last.y - prev.y, last.x - prev.x);
+        //Draw arrow cap
+        var headlen = 15;   // length of head in pixels
+        var weldlen = 0; //aux offset to make arrow fin to end nicely
 
-    for (var leg = 0; leg < 2; leg++) {
+        var last = points[points.length - 1];
+        var prev = points[points.length - 2];
+        var angle = Math.atan2(last.y - prev.y, last.x - prev.x);
 
-        var legAngle = leg == 0 ? -Math.PI / 6 : Math.PI / 6;
+        for (var leg = 0; leg < 2; leg++) {
 
-        var dx = Math.cos(angle + legAngle);
-        var dy = Math.sin(angle + legAngle);
+            var legAngle = leg == 0 ? -Math.PI / 6 : Math.PI / 6;
 
-        ctx.moveTo(last.x + weldlen * dx, last.y + weldlen * dy);
-        ctx.lineTo(last.x - headlen * dx, last.y - headlen * dy);
+            var dx = Math.cos(angle + legAngle);
+            var dy = Math.sin(angle + legAngle);
 
+            ctx.moveTo(last.x + weldlen * dx, last.y + weldlen * dy);
+            ctx.lineTo(last.x - headlen * dx, last.y - headlen * dy);
+
+        }
     }
 
     ctx.stroke();
@@ -606,10 +611,9 @@ function drawLines(ctx, pts) {
         ctx.lineTo(pts[i].x, pts[i].y);
 }
 
-function drawSymbolRotated(ctx,x,y,angle,symbol)
-{
+function drawSymbolRotated(ctx, x, y, angle, symbol) {
     ctx.save();
-    
+
     var meas = {
         x: ctx.measureText(symbol).width,
         y: ctx.measureText('M').width
